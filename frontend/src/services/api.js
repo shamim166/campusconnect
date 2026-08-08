@@ -1,7 +1,9 @@
 import axios from "axios";
 
+export const BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
 const api = axios.create({
-  baseURL: "http://127.0.0.1:8000/api/",
+  baseURL: `${BASE_URL}/api/`,
 });
 
 const PUBLIC_URLS = ["register/", "login/", "admin-login/"];
@@ -40,7 +42,6 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
-        // অন্য request গুলো queue তে রাখো
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
@@ -57,14 +58,13 @@ api.interceptors.response.use(
       const refreshToken = localStorage.getItem("refresh");
 
       if (!refreshToken) {
-        // refresh token নেই — logout
         localStorage.clear();
         window.location.href = "/login";
         return Promise.reject(error);
       }
 
       try {
-        const res = await axios.post("http://127.0.0.1:8000/api/token/refresh/", {
+        const res = await axios.post(`${BASE_URL}/api/token/refresh/`, {
           refresh: refreshToken,
         });
 

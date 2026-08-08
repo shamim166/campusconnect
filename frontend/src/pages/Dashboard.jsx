@@ -13,7 +13,7 @@ import { useLanguage, useTheme, useBreakpoint } from "../hooks";
 import { cardsGridCols, headerPadding, mainOffset, pagePadding, statsGridCols } from "../utils/responsiveLayout";
 import { getThemeColors } from "../utils/themeColors";
 import ThemeLanguageSwitcher from "../components/ThemeLanguageSwitcher";
-import api from "../services/api";
+import api, { BASE_URL } from "../services/api";
 import { cachedGet } from "../services/apiCache";
 import LeaderboardWidget from "../components/LeaderboardWidget";
 import { useAuth } from "../contexts/AuthContext";
@@ -397,7 +397,7 @@ export default function Dashboard() {
 
             <div style={{ position: "relative" }}>
               <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setDropdownOpen(!dropdownOpen)} style={{ display: "flex", alignItems: "center", gap: "10px", border: "none", background: "transparent", cursor: "pointer", padding: 0 }}>
-                <div style={{ width: "44px", height: "44px", borderRadius: "50%", background: user?.profile_picture ? "transparent" : "linear-gradient(135deg, #7C3AED, #4F46E5)", backgroundImage: user?.profile_picture ? `url(http://127.0.0.1:8000${user.profile_picture})` : "none", backgroundSize: "cover", backgroundPosition: "center", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "18px", fontWeight: "800", boxShadow: "0 4px 14px rgba(124,58,237,0.3)", border: "2px solid rgba(255,255,255,0.2)" }}>
+                <div style={{ width: "44px", height: "44px", borderRadius: "50%", background: user?.profile_picture ? "transparent" : "linear-gradient(135deg, #7C3AED, #4F46E5)", backgroundImage: user?.profile_picture ? `url(${BASE_URL}${user.profile_picture})` : "none", backgroundSize: "cover", backgroundPosition: "center", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "18px", fontWeight: "800", boxShadow: "0 4px 14px rgba(124,58,237,0.3)", border: "2px solid rgba(255,255,255,0.2)" }}>
                   {!user?.profile_picture && (user?.first_name?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || username.charAt(0).toUpperCase())}
                 </div>
               </motion.button>

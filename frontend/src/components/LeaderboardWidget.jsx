@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { cachedGet } from '../services/apiCache';
 import { useTheme } from '../hooks';
+import { BASE_URL } from "../api";
 
 export default function LeaderboardWidget() {
   const [data, setData] = useState(null);
@@ -62,7 +63,7 @@ export default function LeaderboardWidget() {
             </div>
             
             {profile.user.profile_picture ? (
-               <img src={`http://127.0.0.1:8000${profile.user.profile_picture}`} alt="" style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }} />
+               <img src={`${BASE_URL}${profile.user.profile_picture}`} alt="" style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }} />
             ) : (
                <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "linear-gradient(135deg, #7C3AED, #4F46E5)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
                  {profile.user.first_name?.[0] || profile.user.username[0].toUpperCase()}

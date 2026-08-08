@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { clearAllCache } from '../services/apiCache';
+import { BASE_URL } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -21,7 +22,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/profile/", {
+      const response = await axios.get(`${BASE_URL}/api/profile/`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUser(response.data);

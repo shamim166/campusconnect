@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Trophy, BookOpen, Heart, Briefcase, ShoppingBag, Users, Zap, Star, ShieldCheck } from 'lucide-react';
-import api from '../services/api';
+import api, { BASE_URL } from '../services/api';
 import { useTheme, useBreakpoint } from '../hooks';
 
 const categories = [
@@ -170,7 +170,7 @@ export default function Leaderboard() {
                   </div>
 
                   {profile.user.profile_picture ? (
-                    <img src={`http://127.0.0.1:8000${profile.user.profile_picture}`} alt="" style={{ width: "56px", height: "56px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${isTop3 ? activeColor : 'transparent'}` }} />
+                    <img src={`${BASE_URL}${profile.user.profile_picture}`} alt="" style={{ width: "56px", height: "56px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${isTop3 ? activeColor : 'transparent'}` }} />
                   ) : (
                     <div style={{ width: "56px", height: "56px", borderRadius: "50%", background: `linear-gradient(135deg, ${activeColor}, ${activeColor}dd)`, color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "20px", border: `2px solid ${isTop3 ? activeColor : 'transparent'}` }}>
                       {profile.user.first_name?.[0] || profile.user.username[0].toUpperCase()}

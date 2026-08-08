@@ -10,6 +10,7 @@ import ImageCropModal from "../components/ImageCropModal";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { useAuth } from "../contexts/AuthContext";
+import { BASE_URL } from "../services/api";
 
 const DEPARTMENTS = ["CSE", "EEE", "BBA", "English", "Civil", "Law", "Architecture"];
 
@@ -56,8 +57,8 @@ export default function ProfileSettings({ defaultTab = "general" }) {
       setPhone(user.phone_number || "");
       setBloodGroup(user.blood_group || "");
       setBio(user.bio || "");
-      if (user.profile_picture) setProfilePreview(`http://127.0.0.1:8000${user.profile_picture}`);
-      if (user.cover_photo) setCoverPreview(`http://127.0.0.1:8000${user.cover_photo}`);
+      if (user.profile_picture) setProfilePreview(`${BASE_URL}${user.profile_picture}`);
+      if (user.cover_photo) setCoverPreview(`${BASE_URL}${user.cover_photo}`);
       setVerificationStatus(user.verified ? "verified" : "unverified");
     }
   }, [user]);
@@ -82,7 +83,7 @@ export default function ProfileSettings({ defaultTab = "general" }) {
         payload.cover_photo = coverPreview;
       }
 
-      const res = await axios.patch("http://127.0.0.1:8000/api/profile/", payload, {
+      const res = await axios.patch(`${BASE_URL}/api/profile/`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -113,7 +114,7 @@ export default function ProfileSettings({ defaultTab = "general" }) {
       if (verForm.idBack) formData.append("id_back", verForm.idBack);
       formData.append("verified", "true"); // Optimistic verification
 
-      const res = await axios.patch("http://127.0.0.1:8000/api/profile/", formData, {
+      const res = await axios.patch(`${BASE_URL}/api/profile/`, formData, {
         headers: { 
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data" 
