@@ -40,10 +40,11 @@ class RequestOTPView(APIView):
         def send_otp_email():
             try:
                 print(f"--- OTP FOR {email} IS: {otp} ---", flush=True)
+                from django.conf import settings
                 send_mail(
                     "Your CampusConnect Verification Code",
                     f"Your OTP code is: {otp}\nIt is valid for 5 minutes.",
-                    "noreply@campusconnect.edu.bd",
+                    settings.DEFAULT_FROM_EMAIL,
                     [email],
                     fail_silently=False,
                 )
