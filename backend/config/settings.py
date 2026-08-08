@@ -16,11 +16,7 @@ SECRET_KEY = 'django-insecure-eip_lwe83adab!8ci126uopsk4t8lwnzc13)^az34r3c=k!uhy
 
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    "127.0.0.1",
-    "localhost",
-]
-
+ALLOWED_HOSTS = ['campusconnect-backend-x3qe.onrender.com', 'localhost', '127.0.0.1']
 # =========================
 # APPS
 # =========================
