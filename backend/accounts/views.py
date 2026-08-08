@@ -39,6 +39,7 @@ class RequestOTPView(APIView):
         import threading
         def send_otp_email():
             try:
+                print(f"--- OTP FOR {email} IS: {otp} ---", flush=True)
                 send_mail(
                     "Your CampusConnect Verification Code",
                     f"Your OTP code is: {otp}\nIt is valid for 5 minutes.",
@@ -47,7 +48,7 @@ class RequestOTPView(APIView):
                     fail_silently=False,
                 )
             except Exception as e:
-                print(f"Failed to send email: {e}")
+                print(f"Failed to send email to {email}. Error: {e}", flush=True)
 
         email_thread = threading.Thread(target=send_otp_email)
         email_thread.start()
