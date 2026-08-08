@@ -33,6 +33,7 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'django_filters',
+    'anymail',
 
     'accounts',
     'academic',
@@ -170,7 +171,13 @@ CORS_ALLOW_CREDENTIALS = True
 # =========================
 # EMAIL
 # =========================
-if os.environ.get('EMAIL_HOST_USER'):
+if os.environ.get('BREVO_API_KEY'):
+    EMAIL_BACKEND = "anymail.backends.sendinblue.EmailBackend"
+    ANYMAIL = {
+        "SENDINBLUE_API_KEY": os.environ.get('BREVO_API_KEY'),
+    }
+    DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER', 'b4e17c001@smtp-brevo.com')
+elif os.environ.get('EMAIL_HOST_USER'):
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
     EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
