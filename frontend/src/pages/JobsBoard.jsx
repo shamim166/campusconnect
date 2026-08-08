@@ -22,12 +22,14 @@ import {
   GraduationCap,
 } from "lucide-react";
 import api from "../services/api";
+import { cachedGetAll, invalidateCache } from "../services/apiCache";
 import { useNavigate } from "react-router-dom";
 import { useLanguage, useTheme, useBreakpoint } from "../hooks";
 import { autoFillGrid, filterBarGrid, formGridCols, formGridCols3, heroTitleSize, pageShellPadding, statsAutoGrid } from "../utils/responsiveLayout";
 import ThemeLanguageSwitcher from "../components/ThemeLanguageSwitcher";
 import { getThemeColors } from "../utils/themeColors";
 import toast from "react-hot-toast";
+import FloatingBackButton from "../components/FloatingBackButton";
 
 const ACCENT = "#059669";
 const ACCENT_TEAL = "#0d9488";
@@ -99,16 +101,27 @@ export default function JobsBoard() {
   const handleChange = (field, value) => setForm((p) => ({ ...p, [field]: value }));
 
   const fetchJobs = async () => {
+    const hasCached = ["jobs_list", "jobs_mine"].some(k => localStorage.getItem(`cc_cache_${k}`));
     try {
-      const [approvedRes, mineRes] = await Promise.all([
-        api.get("jobs/"),
-        api.get("jobs/mine/"),
+      const [jobsData, mineData] = await cachedGetAll(api, [
+        {
+          url: "jobs/",
+          cacheKey: "jobs_list",
+          ttl: 3 * 60 * 1000,
+          onCacheHit: (d) => { setJobs(d); setLoading(false); },
+        },
+        {
+          url: "jobs/mine/",
+          cacheKey: "jobs_mine",
+          ttl: 2 * 60 * 1000,
+          onCacheHit: (d) => setMyJobs(d),
+        },
       ]);
-      setJobs(approvedRes.data);
-      setMyJobs(mineRes.data);
+      if (jobsData) setJobs(jobsData);
+      if (mineData) setMyJobs(mineData);
     } catch (err) {
       if (err.response?.status === 401) navigate("/login");
-      toast.error(t("messages.fetchFailed"));
+      if (!hasCached) toast.error(t("messages.fetchFailed"));
     } finally {
       setLoading(false);
     }
@@ -355,6 +368,7 @@ export default function JobsBoard() {
 
   return (
     <div className="cc-page" style={{ minHeight: "100vh", background: isDark ? "#0b1120" : "#f0fdf4", padding: pageShellPadding(bp), fontFamily: "Inter, sans-serif", color: colors.text_primary }}>
+      <FloatingBackButton />
       <ThemeLanguageSwitcher />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 

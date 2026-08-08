@@ -20,6 +20,18 @@ urlpatterns = [
     # Blood Donation
     path('api/', include('blood_donation.urls')),
 
+    # Clubs
+    path('api/', include('clubs.urls')),
+
+    # Marketplace
+    path('api/marketplace/', include('marketplace.urls')),
+
+    # Emergency
+    path('api/emergency/', include('emergency.urls')),
+    
+    # Leaderboard
+    path('api/leaderboard/', include('leaderboard.urls')),
+
     # JWT
     path(
         'api/login/',

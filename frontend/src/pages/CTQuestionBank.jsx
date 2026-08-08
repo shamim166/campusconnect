@@ -13,12 +13,14 @@ import {
   Zap,
 } from "lucide-react";
 import api from "../services/api";
+import { cachedGet, invalidateCache } from "../services/apiCache";
 import { useNavigate } from "react-router-dom";
 import { useLanguage, useTheme, useBreakpoint } from "../hooks";
 import { autoFillGrid, filterBarGrid, formGridCols, heroTitleSize, modalPadding, pageShellPadding, sectionTitleSize, statsAutoGrid } from "../utils/responsiveLayout";
 import ThemeLanguageSwitcher from "../components/ThemeLanguageSwitcher";
 import { getThemeColors } from "../utils/themeColors";
 import toast from "react-hot-toast";
+import FloatingBackButton from "../components/FloatingBackButton";
 
 const ACCENT = "#2563EB";
 const DEPARTMENTS = ["CSE", "EEE", "BBA", "English", "Civil", "Architecture", "Law"];
@@ -89,22 +91,25 @@ export default function CTQuestionBank() {
   };
 
   const fetchQuestions = async () => {
+    const hasCached = !!localStorage.getItem('cc_cache_ct_questions');
     try {
-      const res = await api.get("ct-questions/");
-      setQuestions(res.data);
-      
-      // Calculate stats
-      const statsCalc = {
-        total: res.data.length,
-        easy: res.data.filter((q) => q.difficulty === "easy").length,
-        medium: res.data.filter((q) => q.difficulty === "medium").length,
-        hard: res.data.filter((q) => q.difficulty === "hard").length,
-      };
-      setStats(statsCalc);
+      const freshData = await cachedGet(api, "ct-questions/", {
+        cacheKey: "ct_questions",
+        ttl: 3 * 60 * 1000,
+        onCacheHit: (d) => {
+          setQuestions(d);
+          setStats({ total: d.length, easy: d.filter(q => q.difficulty === 'easy').length, medium: d.filter(q => q.difficulty === 'medium').length, hard: d.filter(q => q.difficulty === 'hard').length });
+          setLoading(false);
+        },
+      });
+      if (freshData) {
+        setQuestions(freshData);
+        setStats({ total: freshData.length, easy: freshData.filter(q => q.difficulty === 'easy').length, medium: freshData.filter(q => q.difficulty === 'medium').length, hard: freshData.filter(q => q.difficulty === 'hard').length });
+      }
     } catch (error) {
       if (error.response?.status === 401) navigate("/login");
       console.error(error);
-      toast.error(t("messages.fetchFailed"));
+      if (!hasCached) toast.error(t("messages.fetchFailed"));
     } finally {
       setLoading(false);
     }
@@ -384,6 +389,7 @@ export default function CTQuestionBank() {
         transition: "all 0.35s ease",
       }}
     >
+      <FloatingBackButton />
       <ThemeLanguageSwitcher />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');

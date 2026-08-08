@@ -72,7 +72,7 @@ def fill_assignment_docx(template_path, values):
 
 
 class NoteListCreateView(generics.ListCreateAPIView):
-    queryset = Note.objects.all()
+    queryset = Note.objects.select_related('uploaded_by').all()
     serializer_class = NoteSerializer
     permission_classes = [CanUploadNote]
 
@@ -81,13 +81,13 @@ class NoteListCreateView(generics.ListCreateAPIView):
 
 
 class NoteDetailView(generics.RetrieveDestroyAPIView):
-    queryset = Note.objects.all()
+    queryset = Note.objects.select_related('uploaded_by').all()
     serializer_class = NoteSerializer
     permission_classes = [IsAuthenticated]
 
 
 class CTQuestionListCreateView(generics.ListCreateAPIView):
-    queryset = CTQuestion.objects.all()
+    queryset = CTQuestion.objects.select_related('uploaded_by').all()
     serializer_class = CTQuestionSerializer
     permission_classes = [CanUploadNote]
 
@@ -101,7 +101,7 @@ class CTQuestionListCreateView(generics.ListCreateAPIView):
 
 
 class CTQuestionDetailView(generics.RetrieveDestroyAPIView):
-    queryset = CTQuestion.objects.all()
+    queryset = CTQuestion.objects.select_related('uploaded_by').all()
     serializer_class = CTQuestionSerializer
     permission_classes = [IsAuthenticated]
 
@@ -116,7 +116,7 @@ class JobListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return JobPosting.objects.filter(status='approved')
+        return JobPosting.objects.select_related('posted_by', 'reviewed_by').filter(status='approved')
 
     def perform_create(self, serializer):
         serializer.save(
@@ -130,7 +130,7 @@ class JobMySubmissionsView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return JobPosting.objects.filter(posted_by=self.request.user)
+        return JobPosting.objects.select_related('posted_by', 'reviewed_by').filter(posted_by=self.request.user)
 
 
 class JobDetailView(generics.RetrieveAPIView):
@@ -139,9 +139,10 @@ class JobDetailView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         user = self.request.user
+        qs = JobPosting.objects.select_related('posted_by', 'reviewed_by')
         if user.role == 'admin':
-            return JobPosting.objects.all()
-        return JobPosting.objects.filter(
+            return qs.all()
+        return qs.filter(
             Q(status='approved') | Q(posted_by=user)
         )
 
@@ -154,7 +155,7 @@ class AdminJobListView(APIView):
             return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
 
         status_filter = request.query_params.get('status')
-        qs = JobPosting.objects.all()
+        qs = JobPosting.objects.select_related('posted_by', 'reviewed_by').all()
         if status_filter:
             qs = qs.filter(status=status_filter)
 

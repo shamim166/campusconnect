@@ -11,11 +11,13 @@ import {
 } from "lucide-react";
 import { useNavigate as useNav } from "react-router-dom";
 import api from "../services/api";
+import { cachedGetAll, invalidateCache } from "../services/apiCache";
 import { useTheme, useLanguage, useBreakpoint } from "../hooks";
 import { autoFillGrid, bloodFilterGrid, formGridCols, formGridCols3, headerPadding, heroTitleSize, pagePadding, splitSidebarGrid, statsAutoGrid } from "../utils/responsiveLayout";
 import { getThemeColors } from "../utils/themeColors";
 import ThemeLanguageSwitcher from "../components/ThemeLanguageSwitcher";
 import toast from "react-hot-toast";
+import FloatingBackButton from "../components/FloatingBackButton";
 
 // ─── Bangladesh Location Data ──────────────────────────────────────────────
 const BD_LOCATIONS = {
@@ -233,22 +235,44 @@ export default function BloodDonation() {
 
   const username = localStorage.getItem("username") || "User";
 
-  // Fetch data
+  // Fetch data with stale-while-revalidate cache
   const fetchAll = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [statsRes, donorsRes, requestsRes, communityRes] = await Promise.allSettled([
-        api.get("blood/stats/"),
-        api.get("blood/donors/"),
-        api.get("blood/requests/"),
-        api.get("blood/community/"),
-      ]);
-      if (statsRes.status === "fulfilled") setStats(statsRes.value.data);
-      if (donorsRes.status === "fulfilled") setDonors(donorsRes.value.data);
-      if (requestsRes.status === "fulfilled") setRequests(requestsRes.value.data);
-      if (communityRes.status === "fulfilled") setCommunityPosts(communityRes.value.data);
+    // Check if we have ANY cached data — if yes, don't show loading skeleton
+    const hasCached = [
+      "blood_stats", "blood_donors", "blood_requests", "blood_community"
+    ].some(k => localStorage.getItem(`cc_cache_${k}`));
+    if (!hasCached) setLoading(true);
 
-      // Try fetching my profile
+    try {
+      const [stats, donors, requests, community] = await cachedGetAll(api, [
+        {
+          url: "blood/stats/",
+          cacheKey: "blood_stats",
+          onCacheHit: (d) => { setStats(d); setLoading(false); },
+        },
+        {
+          url: "blood/donors/",
+          cacheKey: "blood_donors",
+          onCacheHit: (d) => setDonors(d),
+        },
+        {
+          url: "blood/requests/",
+          cacheKey: "blood_requests",
+          onCacheHit: (d) => setRequests(d),
+        },
+        {
+          url: "blood/community/",
+          cacheKey: "blood_community",
+          onCacheHit: (d) => setCommunityPosts(d),
+        },
+      ]);
+
+      if (stats) setStats(stats);
+      if (donors) setDonors(donors);
+      if (requests) setRequests(requests);
+      if (community) setCommunityPosts(community);
+
+      // Try fetching my profile (short cache — 1 min)
       try {
         const profileRes = await api.get("blood/donors/my-profile/");
         setMyProfile(profileRes.data);

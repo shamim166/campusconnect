@@ -14,12 +14,14 @@ import {
   Sparkles,
 } from "lucide-react";
 import api from "../services/api";
+import { cachedGet, invalidateCache } from "../services/apiCache";
 import { useNavigate } from "react-router-dom";
 import { useLanguage, useTheme, useBreakpoint } from "../hooks";
 import { autoFillGrid, filterBarGrid, formGridCols, heroTitleSize, modalPadding, pageShellPadding, sectionTitleSize, statsAutoGrid } from "../utils/responsiveLayout";
 import ThemeLanguageSwitcher from "../components/ThemeLanguageSwitcher";
 import { getThemeColors } from "../utils/themeColors";
 import toast from "react-hot-toast";
+import FloatingBackButton from "../components/FloatingBackButton";
 
 const ACCENT = "#7C3AED";
 const ACCENT_PINK = "#ec4899";
@@ -95,12 +97,18 @@ export default function NotesRepository() {
   };
 
   const fetchNotes = async () => {
+    // Show cached notes immediately, then refresh in background
+    const hasCached = !!localStorage.getItem('cc_cache_notes_list');
     try {
-      const res = await api.get("notes/");
-      setNotes(res.data);
+      const freshData = await cachedGet(api, "notes/", {
+        cacheKey: "notes_list",
+        ttl: 3 * 60 * 1000,
+        onCacheHit: (d) => { setNotes(d); setLoading(false); },
+      });
+      if (freshData) setNotes(freshData);
     } catch (error) {
       if (error.response?.status === 401) navigate("/login");
-      toast.error(t("messages.fetchFailed"));
+      if (!hasCached) toast.error(t("messages.fetchFailed"));
     } finally {
       setLoading(false);
     }
@@ -284,6 +292,7 @@ export default function NotesRepository() {
 
   return (
     <div className="cc-page" style={{ minHeight: "100vh", background: isDark ? "#0b1120" : "#faf5ff", padding: pageShellPadding(bp), fontFamily: "Inter, sans-serif", color: colors.text_primary, transition: "all 0.35s ease" }}>
+      <FloatingBackButton />
       <ThemeLanguageSwitcher />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');

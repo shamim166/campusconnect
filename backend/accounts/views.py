@@ -369,6 +369,64 @@ class ProfileView(APIView):
         serializer = ProfileSerializer(request.user)
         return Response(serializer.data)
 
+    def patch(self, request):
+        user = request.user
+        data = request.data
+        import base64
+        from django.core.files.base import ContentFile
+        
+        if 'first_name' in data:
+            user.first_name = data['first_name']
+        if 'phone_number' in data:
+            user.phone_number = data['phone_number']
+        if 'university_email' in data:
+            user.university_email = data['university_email']
+        if 'blood_group' in data:
+            user.blood_group = data['blood_group']
+        if 'bio' in data:
+            user.bio = data['bio']
+            
+        def process_base64_image(base64_str, filename):
+            if base64_str and ';base64,' in base64_str:
+                format, imgstr = base64_str.split(';base64,') 
+                ext = format.split('/')[-1].split(';')[0]
+                return ContentFile(base64.b64decode(imgstr), name=f'{filename}.{ext}')
+            return None
+
+        if 'profile_picture' in data and data['profile_picture']:
+             file = process_base64_image(data['profile_picture'], f"profile_{user.id}")
+             if file: user.profile_picture = file
+             
+        if 'cover_photo' in data and data['cover_photo']:
+             file = process_base64_image(data['cover_photo'], f"cover_{user.id}")
+             if file: user.cover_photo = file
+             
+        # Verification fields
+        if 'id_front' in request.FILES:
+             user.id_front = request.FILES['id_front']
+        elif 'id_front' in data and data['id_front']:
+             file = process_base64_image(data['id_front'], f"id_front_{user.id}")
+             if file: user.id_front = file
+             
+        if 'id_back' in request.FILES:
+             user.id_back = request.FILES['id_back']
+        elif 'id_back' in data and data['id_back']:
+             file = process_base64_image(data['id_back'], f"id_back_{user.id}")
+             if file: user.id_back = file
+             
+        if 'semester' in data:
+             user.semester = data['semester']
+        if 'department' in data:
+             user.department = data['department']
+        if 'intake' in data:
+             user.intake = data['intake']
+             
+        if 'verified' in data:
+             user.verified = str(data['verified']).lower() == 'true'
+
+        user.save()
+        return Response(ProfileSerializer(user).data)
+
 
 class DashboardStatsView(APIView):
     permission_classes = [IsAuthenticated]
@@ -378,37 +436,41 @@ class DashboardStatsView(APIView):
         from blood_donation.models import BloodRequest, CommunityPost
         from django.utils import timezone
         from datetime import timedelta
-        
+
+        # Efficient single queries for counts
         total_notes = Note.objects.count()
-        total_jobs = JobPosting.objects.count()
+        total_jobs = JobPosting.objects.filter(status='approved').count()
         total_posts = CommunityPost.objects.count()
         total_blood_requests = BloodRequest.objects.count()
 
-        # Gather recent activity
+        # Gather recent activity — only fetch needed fields
         activities = []
-        for note in Note.objects.order_by('-created_at')[:3]:
+        for note in Note.objects.only('id', 'title', 'created_at').order_by('-created_at')[:3]:
             activities.append({"id": f"note_{note.id}", "title": note.title, "type": "academic", "time": note.created_at.isoformat()})
-        for job in JobPosting.objects.order_by('-created_at')[:3]:
+        for job in JobPosting.objects.only('id', 'title', 'created_at').filter(status='approved').order_by('-created_at')[:3]:
             activities.append({"id": f"job_{job.id}", "title": job.title, "type": "career", "time": job.created_at.isoformat()})
-        for req in BloodRequest.objects.order_by('-created_at')[:3]:
+        for req in BloodRequest.objects.only('id', 'blood_group', 'created_at').order_by('-created_at')[:3]:
             activities.append({"id": f"blood_{req.id}", "title": f"Blood Required: {req.blood_group}", "type": "community", "time": req.created_at.isoformat()})
-        for post in CommunityPost.objects.order_by('-created_at')[:3]:
+        for post in CommunityPost.objects.only('id', 'content', 'created_at').order_by('-created_at')[:3]:
             activities.append({"id": f"post_{post.id}", "title": post.content[:30] + ("..." if len(post.content) > 30 else ""), "type": "community", "time": post.created_at.isoformat()})
-        
-        # Sort by time descending and take top 4
+
         activities.sort(key=lambda x: x['time'], reverse=True)
         recent_activity = activities[:4]
 
+        # Graph data: last 12 days
         today = timezone.now().date()
         graph_data = []
         for i in range(11, -1, -1):
             day = today - timedelta(days=i)
-            c1 = Note.objects.filter(created_at__date=day).count()
-            c2 = JobPosting.objects.filter(created_at__date=day).count()
-            c3 = BloodRequest.objects.filter(created_at__date=day).count()
-            c4 = CommunityPost.objects.filter(created_at__date=day).count()
-            graph_data.append(c1 + c2 + c3 + c4)
+            c = (
+                Note.objects.filter(created_at__date=day).count()
+                + JobPosting.objects.filter(created_at__date=day).count()
+                + BloodRequest.objects.filter(created_at__date=day).count()
+                + CommunityPost.objects.filter(created_at__date=day).count()
+            )
+            graph_data.append(c)
 
+        # Fallback to demo data if nothing was created recently
         if sum(graph_data) == 0:
             graph_data = [40, 60, 30, 80, 50, 90, 70, 100, 40, 60, 85, 45]
 
