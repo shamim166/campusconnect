@@ -36,13 +36,21 @@ class RequestOTPView(APIView):
             defaults={'otp': otp, 'created_at': timezone.now()}
         )
 
-        send_mail(
-            "Your CampusConnect Verification Code",
-            f"Your OTP code is: {otp}\nIt is valid for 5 minutes.",
-            "noreply@campusconnect.edu.bd",
-            [email],
-            fail_silently=False,
-        )
+        import threading
+        def send_otp_email():
+            try:
+                send_mail(
+                    "Your CampusConnect Verification Code",
+                    f"Your OTP code is: {otp}\nIt is valid for 5 minutes.",
+                    "noreply@campusconnect.edu.bd",
+                    [email],
+                    fail_silently=False,
+                )
+            except Exception as e:
+                print(f"Failed to send email: {e}")
+
+        email_thread = threading.Thread(target=send_otp_email)
+        email_thread.start()
 
         return Response({"message": "OTP sent successfully"})
 
