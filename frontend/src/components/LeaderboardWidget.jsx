@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { cachedGet } from '../services/apiCache';
 import { useTheme } from '../hooks';
-import { BASE_URL } from "../api";
+import { BASE_URL } from "../services/api";
 
 export default function LeaderboardWidget() {
   const [data, setData] = useState(null);
