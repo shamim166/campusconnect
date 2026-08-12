@@ -10,7 +10,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 import random
 from django.core.mail import send_mail
 
-from .models import User, FeaturePermission, EmailOTP
+from .models import User, FeaturePermission
 from .serializers import (
     RegisterSerializer,
     ProfileSerializer,
@@ -18,67 +18,6 @@ from .serializers import (
     FeaturePermissionSerializer,
 )
 
-
-class RequestOTPView(APIView):
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        email = request.data.get("email")
-        if not email:
-            return Response({"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        if User.objects.filter(university_email=email).exists():
-            return Response({"error": "Email is already registered"}, status=status.HTTP_400_BAD_REQUEST)
-
-        otp = f"{random.randint(100000, 999999)}"
-        EmailOTP.objects.update_or_create(
-            email=email,
-            defaults={'otp': otp, 'created_at': timezone.now()}
-        )
-
-        import threading
-        def send_otp_email():
-            try:
-                print(f"--- OTP FOR {email} IS: {otp} ---", flush=True)
-                from django.conf import settings
-                send_mail(
-                    "Your CampusConnect Verification Code",
-                    f"Your OTP code is: {otp}\nIt is valid for 5 minutes.",
-                    settings.DEFAULT_FROM_EMAIL,
-                    [email],
-                    fail_silently=False,
-                )
-            except Exception as e:
-                print(f"Failed to send email to {email}. Error: {e}", flush=True)
-
-        email_thread = threading.Thread(target=send_otp_email)
-        email_thread.start()
-
-        return Response({"message": "OTP sent successfully"})
-
-
-class VerifyOTPView(APIView):
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        email = request.data.get("email")
-        otp = request.data.get("otp")
-
-        if not email or not otp:
-            return Response({"error": "Email and OTP are required"}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            record = EmailOTP.objects.get(email=email)
-        except EmailOTP.DoesNotExist:
-            return Response({"error": "No OTP requested for this email"}, status=status.HTTP_400_BAD_REQUEST)
-
-        if timezone.now() > record.created_at + timedelta(minutes=5):
-            return Response({"error": "OTP has expired"}, status=status.HTTP_400_BAD_REQUEST)
-
-        if record.otp != str(otp):
-            return Response({"error": "Invalid OTP"}, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response({"message": "OTP verified"})
 
 
 class RegisterView(generics.CreateAPIView):
@@ -88,23 +27,11 @@ class RegisterView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         email = request.data.get("university_email")
-        otp = request.data.get("otp")
 
-        if not email or not otp:
-            return Response({"error": "Email and OTP are required for registration"}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            record = EmailOTP.objects.get(email=email)
-            if timezone.now() > record.created_at + timedelta(minutes=5):
-                return Response({"error": "OTP has expired"}, status=status.HTTP_400_BAD_REQUEST)
-            if record.otp != str(otp):
-                return Response({"error": "Invalid OTP"}, status=status.HTTP_400_BAD_REQUEST)
-        except EmailOTP.DoesNotExist:
-            return Response({"error": "OTP not found. Please request a new one."}, status=status.HTTP_400_BAD_REQUEST)
+        if not email:
+            return Response({"error": "Email is required for registration"}, status=status.HTTP_400_BAD_REQUEST)
 
         response = super().create(request, *args, **kwargs)
-        
-        EmailOTP.objects.filter(email=email).delete()
 
         return response
 

@@ -126,11 +126,4 @@ class FeaturePermission(models.Model):
         status = "✓" if self.is_allowed else "✗"
         return f"{self.student.username} → {self.get_feature_key_display()} [{status}]"
 
-
-class EmailOTP(models.Model):
-    email = models.EmailField(unique=True)
-    otp = models.CharField(max_length=6)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.email} - {self.otp}"
+
