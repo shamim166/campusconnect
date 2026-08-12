@@ -159,6 +159,7 @@ export default function CTQuestionBank() {
       });
       toast.success(t("messages.uploadSuccess"));
       resetModal();
+      invalidateCache("ct_questions_list");
       fetchQuestions();
     } catch (error) {
       toast.error(error.response?.data?.error || t("messages.uploadFailed"));
@@ -197,6 +198,7 @@ export default function CTQuestionBank() {
       });
       toast.success("Updated successfully");
       resetModal();
+      invalidateCache("ct_questions_list");
       fetchQuestions();
     } catch (error) {
       toast.error(error.response?.data?.error || "Failed to update");
@@ -212,6 +214,7 @@ export default function CTQuestionBank() {
       await api.delete(`ct-questions/${id}/`);
       toast.success("Deleted successfully");
       if (selectedQuestion?.id === id) setSelectedQuestion(null);
+      invalidateCache("ct_questions_list");
       fetchQuestions();
     } catch (e) {
       toast.error("Failed to delete");

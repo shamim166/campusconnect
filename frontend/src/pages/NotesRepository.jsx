@@ -146,6 +146,7 @@ export default function NotesRepository() {
       });
       toast.success(t("messages.uploadSuccess"));
       resetModal();
+      invalidateCache("notes_list");
       fetchNotes();
     } catch (err) {
       if (err.response?.status === 401) {
@@ -178,6 +179,7 @@ export default function NotesRepository() {
       await api.patch(`notes/${editNoteId}/`, formData, { headers: { "Content-Type": "multipart/form-data" } });
       toast.success("Updated successfully");
       resetModal();
+      invalidateCache("notes_list");
       fetchNotes();
     } catch (err) {
       toast.error("Failed to update");
@@ -193,6 +195,7 @@ export default function NotesRepository() {
       await api.delete(`notes/${id}/`);
       toast.success("Deleted successfully");
       if (selectedNote?.id === id) setSelectedNote(null);
+      invalidateCache("notes_list");
       fetchNotes();
     } catch (e) {
       toast.error("Failed to delete");
