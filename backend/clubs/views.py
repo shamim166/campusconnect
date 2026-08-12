@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from .models import Club, ClubMember, Event, Post, PostLike, PostComment, EventRegistration, ClubApplication, ClubAdminClaim
 from .serializers import ClubSerializer, ClubMemberSerializer, EventSerializer, PostSerializer, PostCommentSerializer, EventRegistrationSerializer, ClubApplicationSerializer, ClubAdminClaimSerializer
+from accounts.permissions import IsOwnerOrReadOnly
 
 class ClubViewSet(viewsets.ModelViewSet):
     serializer_class = ClubSerializer
@@ -117,7 +118,7 @@ class EventViewSet(viewsets.ModelViewSet):
 
 class PostViewSet(viewsets.ModelViewSet):
     serializer_class = PostSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     queryset = Post.objects.all().order_by('-created_at')
 
     def get_queryset(self):

@@ -13,6 +13,7 @@ from django.utils import timezone
 from .models import Assignment, AssignmentTemplate, Note, CTQuestion, JobPosting
 from .serializers import NoteSerializer, CTQuestionSerializer, JobPostingSerializer
 from .permissions import CanUploadNote
+from accounts.permissions import IsOwnerOrReadOnly
 
 
 ASSIGNMENT_TEMPLATE_DEFAULTS = {
@@ -80,10 +81,10 @@ class NoteListCreateView(generics.ListCreateAPIView):
         serializer.save(uploaded_by=self.request.user)
 
 
-class NoteDetailView(generics.RetrieveDestroyAPIView):
+class NoteDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Note.objects.select_related('uploaded_by').all()
     serializer_class = NoteSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
 
 class CTQuestionListCreateView(generics.ListCreateAPIView):
@@ -100,10 +101,10 @@ class CTQuestionListCreateView(generics.ListCreateAPIView):
         serializer.save(uploaded_by=self.request.user)
 
 
-class CTQuestionDetailView(generics.RetrieveDestroyAPIView):
+class CTQuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = CTQuestion.objects.select_related('uploaded_by').all()
     serializer_class = CTQuestionSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -133,9 +134,9 @@ class JobMySubmissionsView(generics.ListAPIView):
         return JobPosting.objects.select_related('posted_by', 'reviewed_by').filter(posted_by=self.request.user)
 
 
-class JobDetailView(generics.RetrieveAPIView):
+class JobDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = JobPostingSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_queryset(self):
         user = self.request.user

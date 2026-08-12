@@ -12,6 +12,7 @@ from .serializers import (
     BloodDonorSerializer, BloodRequestSerializer,
     DonationRecordSerializer, CommunityPostSerializer, DonationStatsSerializer,
 )
+from accounts.permissions import IsOwnerOrReadOnly
 
 # Compatible blood groups lookup
 COMPATIBLE_DONORS = {
@@ -93,7 +94,7 @@ class BloodDonorViewSet(viewsets.ModelViewSet):
 
 class BloodRequestViewSet(viewsets.ModelViewSet):
     serializer_class = BloodRequestSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_queryset(self):
         qs = BloodRequest.objects.select_related('requested_by')
@@ -169,7 +170,7 @@ class DonationRecordViewSet(viewsets.ModelViewSet):
 
 class CommunityPostViewSet(viewsets.ModelViewSet):
     serializer_class = CommunityPostSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_queryset(self):
         return CommunityPost.objects.filter(is_approved=True).prefetch_related('likes', 'author')

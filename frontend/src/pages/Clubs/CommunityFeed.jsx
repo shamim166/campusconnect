@@ -1,11 +1,19 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Heart, MessageSquare, Image as ImageIcon, Calendar } from "lucide-react";
+import { Heart, MessageSquare, Image as ImageIcon, Calendar, Edit, Trash2, X } from "lucide-react";
+import toast from "react-hot-toast";
 import api from "../../services/api";
 
 export default function CommunityFeed() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [editPostId, setEditPostId] = useState(null);
+  const [editForm, setEditForm] = useState({ content: "" });
+  const [saving, setSaving] = useState(false);
+
+  const username = localStorage.getItem("username");
 
   useEffect(() => {
     fetchFeed();
@@ -20,6 +28,44 @@ export default function CommunityFeed() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDelete = async (id, clubId) => {
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+    setDeleteLoading(true);
+    try {
+      await api.delete(`clubs/${clubId}/posts/${id}/`);
+      toast.success("Post deleted successfully");
+      fetchFeed();
+    } catch (e) {
+      toast.error("Failed to delete post");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (!editForm.content.trim()) return;
+    setSaving(true);
+    try {
+      // Find the club ID for this post
+      const post = posts.find(p => p.id === editPostId);
+      await api.patch(`clubs/${post.club}/posts/${editPostId}/`, editForm);
+      toast.success("Post updated successfully");
+      setShowEdit(false);
+      fetchFeed();
+    } catch (err) {
+      toast.error("Failed to update post");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openEditModal = (post) => {
+    setEditPostId(post.id);
+    setEditForm({ content: post.content });
+    setShowEdit(true);
   };
 
   const handleLike = async (postId, clubId) => {
@@ -82,6 +128,7 @@ export default function CommunityFeed() {
                     </p>
                   </div>
                 </Link>
+
               </div>
               
               <p className="text-gray-300 mb-4 whitespace-pre-wrap">{post.content}</p>
@@ -106,6 +153,33 @@ export default function CommunityFeed() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {showEdit && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 max-w-lg w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-white">Edit Post</h2>
+              <button onClick={() => setShowEdit(false)} className="text-gray-400 hover:text-white">
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleEditSubmit}>
+              <textarea
+                value={editForm.content}
+                onChange={e => setEditForm({...editForm, content: e.target.value})}
+                className="w-full bg-gray-800 border border-gray-700 rounded-xl p-4 text-white focus:outline-none focus:border-purple-500"
+                rows="4"
+                required
+              />
+              <div className="flex gap-4 mt-4">
+                <button type="button" onClick={() => setShowEdit(false)} className="flex-1 py-3 bg-gray-800 text-white rounded-xl font-bold hover:bg-gray-700 transition-colors">Cancel</button>
+                <button type="submit" disabled={saving} className="flex-1 py-3 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 transition-colors">{saving ? 'Saving...' : 'Save'}</button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

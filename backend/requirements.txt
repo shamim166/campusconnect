@@ -1,5 +1,4 @@
 asgiref==3.8.1
-dj-database-url==2.3.0
 Django==5.1.4
 django-cors-headers==4.6.0
 django-filter==24.3
@@ -8,11 +7,8 @@ djangorestframework_simplejwt==5.3.1
 docxtpl==0.18.0
 gunicorn==23.0.0
 Jinja2==3.1.4
-lxml==5.3.0
 MarkupSafe==3.0.2
 packaging==24.2
-pillow==11.0.0
-psycopg2-binary==2.9.9
 PyJWT==2.9.0
 python-docx==1.1.2
 python-dotenv==1.0.1

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, MapPin, Users, Plus, ArrowLeft } from "lucide-react";
+import { Calendar, MapPin, Users, Plus, ArrowLeft, Edit, Trash2, X } from "lucide-react";
+import toast from "react-hot-toast";
 import api from "../../services/api";
 import CreateEventModal from "../../components/Clubs/CreateEventModal";
 import CreatePostModal from "../../components/Clubs/CreatePostModal";
@@ -20,6 +21,13 @@ export default function ClubDetails() {
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [applyMessage, setApplyMessage] = useState("");
   const [showApplyModal, setShowApplyModal] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [editPostId, setEditPostId] = useState(null);
+  const [editForm, setEditForm] = useState({ content: "" });
+  const [saving, setSaving] = useState(false);
+
+  const username = localStorage.getItem("username");
 
   useEffect(() => {
     fetchClubDetails();
@@ -88,11 +96,47 @@ export default function ClubDetails() {
     try {
       await api.post(`clubs/${id}/events/${eventId}/register/`);
       fetchClubDetails();
-      alert("Registered successfully!");
+      toast.success("Registered successfully!");
     } catch (error) {
       console.error("Error registering:", error);
-      alert(error.response?.data?.detail || "Registration failed");
+      toast.error(error.response?.data?.detail || "Registration failed");
     }
+  };
+
+  const handleDeletePost = async (postId) => {
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+    setDeleteLoading(true);
+    try {
+      await api.delete(`clubs/${id}/posts/${postId}/`);
+      toast.success("Post deleted successfully");
+      fetchClubDetails();
+    } catch (e) {
+      toast.error("Failed to delete post");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (!editForm.content.trim()) return;
+    setSaving(true);
+    try {
+      await api.patch(`clubs/${id}/posts/${editPostId}/`, editForm);
+      toast.success("Post updated successfully");
+      setShowEdit(false);
+      fetchClubDetails();
+    } catch (err) {
+      toast.error("Failed to update post");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openEditModal = (post) => {
+    setEditPostId(post.id);
+    setEditForm({ content: post.content });
+    setShowEdit(true);
   };
 
   if (loading) {
@@ -212,7 +256,7 @@ export default function ClubDetails() {
                   </div>
                 ) : (
                   posts.filter(p => p.status === 'approved').map(post => (
-                    <div key={post.id} className="bg-gray-800 p-6 rounded-2xl border border-gray-700">
+                    <div key={post.id} className="relative bg-gray-800 p-6 rounded-2xl border border-gray-700">
                       <div className="flex items-center gap-3 mb-4">
                         <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center font-bold overflow-hidden">
                           {post.club_logo ? <img src={post.club_logo} className="w-full h-full object-cover"/> : "P"}
@@ -222,7 +266,9 @@ export default function ClubDetails() {
                           <p className="text-xs text-gray-500">{new Date(post.created_at).toLocaleString()}</p>
                         </div>
                       </div>
-                      <p className="text-gray-300 mb-4 whitespace-pre-wrap">{post.content}</p>
+                      <div className="absolute top-6 right-6">
+                      </div>
+                      <p className="text-gray-300 mb-4 whitespace-pre-wrap mt-2">{post.content}</p>
                       {post.image && (
                         <div className="rounded-xl overflow-hidden mb-4">
                           <img src={post.image} alt="Post image" className="w-full h-auto" />
@@ -259,17 +305,19 @@ export default function ClubDetails() {
                   </div>
                 ) : (
                   posts.filter(p => p.status === 'pending').map(post => (
-                    <div key={post.id} className="bg-gray-800 p-6 rounded-2xl border border-gray-700">
+                    <div key={post.id} className="relative bg-gray-800 p-6 rounded-2xl border border-gray-700">
                       <div className="flex items-center gap-3 mb-4">
                         <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center font-bold overflow-hidden">
                           {post.club_logo ? <img src={post.club_logo} className="w-full h-full object-cover"/> : "P"}
                         </div>
                         <div>
-                          <h4 className="font-bold text-gray-200">User ID: {post.created_by} <span className="text-purple-400 font-normal">(Pending)</span></h4>
+                          <h4 className="font-bold text-gray-200">User: {post.created_by?.username} <span className="text-purple-400 font-normal">(Pending)</span></h4>
                           <p className="text-xs text-gray-500">{new Date(post.created_at).toLocaleString()}</p>
                         </div>
                       </div>
-                      <p className="text-gray-300 mb-4 whitespace-pre-wrap">{post.content}</p>
+                      <div className="absolute top-6 right-6">
+                      </div>
+                      <p className="text-gray-300 mb-4 whitespace-pre-wrap mt-2">{post.content}</p>
                       {post.image && (
                         <div className="rounded-xl overflow-hidden mb-4">
                           <img src={post.image} alt="Post image" className="w-full h-auto" />
@@ -639,6 +687,33 @@ export default function ClubDetails() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Edit Modal */}
+      {showEdit && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 max-w-lg w-full z-50">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-white">Edit Post</h2>
+              <button onClick={() => setShowEdit(false)} className="text-gray-400 hover:text-white">
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleEditSubmit}>
+              <textarea
+                value={editForm.content}
+                onChange={e => setEditForm({...editForm, content: e.target.value})}
+                className="w-full bg-gray-800 border border-gray-700 rounded-xl p-4 text-white focus:outline-none focus:border-purple-500"
+                rows="4"
+                required
+              />
+              <div className="flex gap-4 mt-4">
+                <button type="button" onClick={() => setShowEdit(false)} className="flex-1 py-3 bg-gray-800 text-white rounded-xl font-bold hover:bg-gray-700 transition-colors">Cancel</button>
+                <button type="submit" disabled={saving} className="flex-1 py-3 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 transition-colors">{saving ? 'Saving...' : 'Save'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import {
   FileQuestion,
+  Edit,
+  Trash2,
   Download,
   Eye,
   Search,
@@ -72,6 +74,8 @@ export default function CTQuestionBank() {
   const [uploadError, setUploadError] = useState(null);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [stats, setStats] = useState({ total: 0, easy: 0, medium: 0, hard: 0 });
+  const [editQuestionId, setEditQuestionId] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const username = localStorage.getItem("username") || t("common.student");
 
@@ -116,6 +120,11 @@ export default function CTQuestionBank() {
   };
 
   const handleUploadSubmit = async () => {
+    if (editQuestionId) {
+      handleEditSubmit();
+      return;
+    }
+
     if (!uploadFile) {
       toast.error(t("messages.selectFile"));
       return;
@@ -149,23 +158,97 @@ export default function CTQuestionBank() {
         headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success(t("messages.uploadSuccess"));
-      setShowUpload(false);
-      setUploadForm({
-        title: "",
-        course: "",
-        department: "",
-        intake: "",
-        totalQuestions: "",
-        difficulty: "medium",
-        description: "",
-      });
-      setUploadFile(null);
+      resetModal();
       fetchQuestions();
     } catch (error) {
       toast.error(error.response?.data?.error || t("messages.uploadFailed"));
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleEditSubmit = async () => {
+    if (
+      !uploadForm.title ||
+      !uploadForm.course ||
+      !uploadForm.department ||
+      !uploadForm.intake ||
+      !uploadForm.totalQuestions
+    ) {
+      toast.error(t("messages.requiredFields"));
+      return;
+    }
+
+    setUploading(true);
+    setUploadError(null);
+    const formData = new FormData();
+    formData.append("title", uploadForm.title);
+    formData.append("course", uploadForm.course);
+    formData.append("department", uploadForm.department);
+    formData.append("intake", uploadForm.intake);
+    formData.append("total_questions", uploadForm.totalQuestions);
+    formData.append("difficulty", uploadForm.difficulty);
+    formData.append("description", uploadForm.description);
+    if (uploadFile) formData.append("pdf_file", uploadFile);
+
+    try {
+      await api.patch(`ct-questions/${editQuestionId}/`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      toast.success("Updated successfully");
+      resetModal();
+      fetchQuestions();
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Failed to update");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this?")) return;
+    setDeleteLoading(true);
+    try {
+      await api.delete(`ct-questions/${id}/`);
+      toast.success("Deleted successfully");
+      if (selectedQuestion?.id === id) setSelectedQuestion(null);
+      fetchQuestions();
+    } catch (e) {
+      toast.error("Failed to delete");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const openEditModal = (q) => {
+    setEditQuestionId(q.id);
+    setUploadForm({
+      title: q.title,
+      course: q.course,
+      department: q.department,
+      intake: q.intake,
+      totalQuestions: q.total_questions,
+      difficulty: q.difficulty,
+      description: q.description || "",
+    });
+    setUploadFile(null);
+    setShowUpload(true);
+  };
+
+  const resetModal = () => {
+    setShowUpload(false);
+    setUploadFile(null);
+    setUploadError(null);
+    setEditQuestionId(null);
+    setUploadForm({
+      title: "",
+      course: "",
+      department: "",
+      intake: "",
+      totalQuestions: "",
+      difficulty: "medium",
+      description: "",
+    });
   };
 
   useEffect(() => {
@@ -691,34 +774,36 @@ export default function CTQuestionBank() {
                   <span style={{ fontSize: "12px", color: colors.text_muted }}>
                     {question.total_questions} {t("ctQuestions.questions")}
                   </span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const link = document.createElement("a");
-                      link.href = getFileUrl(question);
-                      link.download = question.title;
-                      link.click();
-                    }}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "4px",
-                      padding: "6px 12px",
-                      background: ACCENT,
-                      color: "white",
-                      border: "none",
-                      borderRadius: "6px",
-                      fontSize: "11px",
-                      fontWeight: "700",
-                      cursor: "pointer",
-                      fontFamily: "Inter, sans-serif",
-                      transition: "all 0.2s",
-                    }}
-                    onMouseEnter={(e) => (e.target.style.transform = "scale(1.05)")}
-                    onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
-                  >
-                    <Download size={12} /> {t("common.download")}
-                  </button>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const link = document.createElement("a");
+                        link.href = getFileUrl(question);
+                        link.download = question.title;
+                        link.click();
+                      }}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        padding: "6px 12px",
+                        background: ACCENT,
+                        color: "white",
+                        border: "none",
+                        borderRadius: "6px",
+                        fontSize: "11px",
+                        fontWeight: "700",
+                        cursor: "pointer",
+                        fontFamily: "Inter, sans-serif",
+                        transition: "all 0.2s",
+                      }}
+                      onMouseEnter={(e) => (e.target.style.transform = "scale(1.05)")}
+                      onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
+                    >
+                      <Download size={12} /> {t("common.download")}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -757,10 +842,10 @@ export default function CTQuestionBank() {
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
               <h2 style={{ margin: 0, fontSize: "24px", fontWeight: "800", color: colors.text_primary }}>
-                {t("ctQuestions.uploadPaper")}
+                {editQuestionId ? "Edit Paper" : t("ctQuestions.uploadPaper")}
               </h2>
               <button
-                onClick={() => setShowUpload(false)}
+                onClick={() => resetModal()}
                 style={{
                   background: "none",
                   border: "none",
@@ -1003,7 +1088,7 @@ export default function CTQuestionBank() {
                   onMouseEnter={(e) => !uploading && (e.target.style.transform = "translateY(-2px)")}
                   onMouseLeave={(e) => !uploading && (e.target.style.transform = "translateY(0)")}
                 >
-                  {uploading ? t("admin.permissions.saving") : t("common.upload")}
+                  {uploading ? t("admin.permissions.saving") : (editQuestionId ? "Save Changes" : t("common.upload"))}
                 </button>
               </div>
             </div>

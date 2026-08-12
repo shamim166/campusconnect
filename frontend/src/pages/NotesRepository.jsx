@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import {
   BookOpen,
+  Edit,
+  Trash2,
   Download,
   Eye,
   Search,
@@ -80,6 +82,8 @@ export default function NotesRepository() {
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
+  const [editNoteId, setEditNoteId] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const username = localStorage.getItem("username") || t("common.student");
 
@@ -115,6 +119,11 @@ export default function NotesRepository() {
   };
 
   const handleUploadSubmit = async () => {
+    if (editNoteId) {
+      handleEditSubmit();
+      return;
+    }
+
     if (!uploadFile) {
       toast.error(t("messages.selectFile"));
       return;
@@ -155,10 +164,61 @@ export default function NotesRepository() {
     }
   };
 
+  const handleEditSubmit = async () => {
+    if (!uploadForm.title || !uploadForm.subject || !uploadForm.department || !uploadForm.intake) {
+      toast.error(t("messages.requiredFields"));
+      return;
+    }
+    setUploading(true);
+    const formData = new FormData();
+    Object.entries(uploadForm).forEach(([k, v]) => formData.append(k, v));
+    if (uploadFile) formData.append("pdf_file", uploadFile);
+
+    try {
+      await api.patch(`notes/${editNoteId}/`, formData, { headers: { "Content-Type": "multipart/form-data" } });
+      toast.success("Updated successfully");
+      resetModal();
+      fetchNotes();
+    } catch (err) {
+      toast.error("Failed to update");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this note?")) return;
+    setDeleteLoading(true);
+    try {
+      await api.delete(`notes/${id}/`);
+      toast.success("Deleted successfully");
+      if (selectedNote?.id === id) setSelectedNote(null);
+      fetchNotes();
+    } catch (e) {
+      toast.error("Failed to delete");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const openEditModal = (note) => {
+    setEditNoteId(note.id);
+    setUploadForm({
+      title: note.title,
+      subject: note.subject,
+      department: note.department,
+      intake: note.intake,
+      description: note.description || "",
+    });
+    setUploadFile(null);
+    setShowUpload(true);
+  };
+
   const resetModal = () => {
     setShowUpload(false);
     setUploadFile(null);
     setUploadError(null);
+    setEditNoteId(null);
     setUploadForm({ title: "", subject: "", department: "", intake: "", description: "" });
   };
 
@@ -462,15 +522,17 @@ export default function NotesRepository() {
                       <span style={{ fontSize: 11, color: colors.text_muted, fontWeight: 600 }}>
                         {t("notes.intakeLabel", { value: note.intake })}
                       </span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (note.pdf_file) window.open(note.pdf_file, "_blank");
-                        }}
-                        style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_PINK})`, color: "white", border: "none", borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}
-                      >
-                        <Download size={12} /> {t("common.download")}
-                      </button>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (note.pdf_file) window.open(note.pdf_file, "_blank");
+                          }}
+                          style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_PINK})`, color: "white", border: "none", borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}
+                        >
+                          <Download size={12} /> {t("common.download")}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -488,7 +550,7 @@ export default function NotesRepository() {
         >
           <div className="cc-modal" style={{ width: "100%", maxWidth: 520, background: colors.bg_card, borderRadius: 24, border: `1.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "#ede9fe"}`, overflow: "hidden", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 32px 80px rgba(124,58,237,0.2)" }}>
             <div style={{ background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_PINK})`, padding: "28px 32px", position: "relative" }}>
-              <h2 style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: "white" }}>{t("notes.uploadNotes")}</h2>
+              <h2 style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: "white" }}>{editNoteId ? "Edit Note" : t("notes.uploadNotes")}</h2>
               <p style={{ margin: 0, fontSize: 14, color: "rgba(255,255,255,0.8)" }}>{t("notes.uploadSubtitle")}</p>
               <button onClick={resetModal} style={{ position: "absolute", top: 20, right: 20, background: "rgba(255,255,255,0.2)", border: "none", borderRadius: 10, width: 36, height: 36, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>
                 <X size={20} />
@@ -564,7 +626,7 @@ export default function NotesRepository() {
                     {t("common.cancel")}
                   </button>
                   <button onClick={handleUploadSubmit} disabled={uploading} style={{ padding: "12px 20px", background: uploading ? "#a78bfa" : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_PINK})`, color: "white", border: "none", borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: uploading ? "wait" : "pointer", fontFamily: "Inter, sans-serif", opacity: uploading ? 0.7 : 1 }}>
-                    {uploading ? t("messages.uploading") : t("notes.uploadNotes")}
+                    {uploading ? t("messages.uploading") : (editNoteId ? "Save Changes" : t("notes.uploadNotes"))}
                   </button>
                 </div>
               </div>

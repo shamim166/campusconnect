@@ -2,6 +2,7 @@ from rest_framework import viewsets, permissions, filters
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Category, MarketplaceItem, Wishlist
 from .serializers import CategorySerializer, MarketplaceItemSerializer, WishlistSerializer
+from accounts.permissions import IsOwnerOrReadOnly
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
@@ -14,7 +15,7 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
 class MarketplaceItemViewSet(viewsets.ModelViewSet):
     queryset = MarketplaceItem.objects.filter(status='active').order_by('-created_at')
     serializer_class = MarketplaceItemSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['category', 'condition', 'department', 'semester', 'course_code']
     search_fields = ['title', 'description', 'course_code']

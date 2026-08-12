@@ -21,7 +21,7 @@ function setCache(key, data, ttlMs = DEFAULT_TTL_MS) {
       expiresAt: Date.now() + ttlMs,
     };
     localStorage.setItem(CACHE_PREFIX + key, JSON.stringify(entry));
-  } catch (_) {
+  } catch {
     // localStorage might be full or unavailable — silently ignore
   }
 }
@@ -37,7 +37,7 @@ function getCache(key) {
     const entry = JSON.parse(raw);
     const isStale = Date.now() > entry.expiresAt;
     return { data: entry.data, isStale };
-  } catch (_) {
+  } catch {
     return null;
   }
 }

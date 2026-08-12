@@ -7,7 +7,7 @@ import {
   MessageCircle, ThumbsUp, Camera, Send, ArrowLeft,
   CheckCircle, XCircle, ChevronDown, X, Filter,
   Bell, BarChart2, Sparkles, UserPlus, FileText,
-  ArrowRight, RefreshCw, Eye, Edit3
+  ArrowRight, RefreshCw, Eye, Edit3, Edit, Trash2
 } from "lucide-react";
 import { useNavigate as useNav } from "react-router-dom";
 import api from "../services/api";
@@ -233,6 +233,10 @@ export default function BloodDonation() {
   const [postType, setPostType] = useState("story");
   const [submitting, setSubmitting] = useState(false);
 
+  // Edit states
+  const [editRequestId, setEditRequestId] = useState(null);
+  const [editPostId, setEditPostId] = useState(null);
+
   const username = localStorage.getItem("username") || "User";
 
   // Fetch data with stale-while-revalidate cache
@@ -371,14 +375,77 @@ export default function BloodDonation() {
     if (!postContent.trim()) { toast.error("Write something first!"); return; }
     setSubmitting(true);
     try {
-      await api.post("blood/community/", { content: postContent, post_type: postType });
-      toast.success("Post shared successfully!");
+      if (editPostId) {
+        await api.patch(`blood/community/${editPostId}/`, { content: postContent, post_type: postType });
+        toast.success("Post updated successfully!");
+      } else {
+        await api.post("blood/community/", { content: postContent, post_type: postType });
+        toast.success("Post shared successfully!");
+      }
       setShowPostModal(false);
       setPostContent("");
+      setEditPostId(null);
       fetchAll();
     } catch (err) {
       toast.error("Failed to post.");
     } finally { setSubmitting(false); }
+  };
+
+  const handleEditRequestSubmit = async () => {
+    if (!requestForm.patient_name || !requestForm.blood_group || !requestForm.hospital_name || !requestForm.contact_number) {
+      toast.error("Please fill required fields."); return;
+    }
+    setSubmitting(true);
+    try {
+      await api.patch(`blood/requests/${editRequestId}/`, requestForm);
+      toast.success("Blood request updated successfully!");
+      setShowRequestForm(false);
+      setEditRequestId(null);
+      fetchAll();
+    } catch (err) {
+      toast.error("Failed to update request.");
+    } finally { setSubmitting(false); }
+  };
+
+  const handleDeleteRequest = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this request?")) return;
+    try {
+      await api.delete(`blood/requests/${id}/`);
+      toast.success("Request deleted successfully");
+      fetchAll();
+    } catch (e) {
+      toast.error("Failed to delete request");
+    }
+  };
+
+  const handleDeletePost = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+    try {
+      await api.delete(`blood/community/${id}/`);
+      toast.success("Post deleted successfully");
+      fetchAll();
+    } catch (e) {
+      toast.error("Failed to delete post");
+    }
+  };
+
+  const openEditRequest = (req) => {
+    setEditRequestId(req.id);
+    setRequestForm({
+      patient_name: req.patient_name, blood_group: req.blood_group, bags_needed: req.bags_needed,
+      hospital_name: req.hospital_name, hospital_location: req.hospital_location || "", division: req.division || "",
+      district: req.district || "", contact_person: req.contact_person, contact_number: req.contact_number,
+      urgency: req.urgency, required_date: req.required_date ? req.required_date.split('T')[0] : "",
+      additional_notes: req.additional_notes || "",
+    });
+    setShowRequestForm(true);
+  };
+
+  const openEditPost = (post) => {
+    setEditPostId(post.id);
+    setPostContent(post.content);
+    setPostType(post.post_type);
+    setShowPostModal(true);
   };
 
   // Toggle like
@@ -668,7 +735,7 @@ export default function BloodDonation() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: autoFillGrid(280, bp), gap: 14 }}>
                 {loading ? [1,2,3].map(i => <SkeletonCard key={i} isDark={isDark} />) :
-                  requests.slice(0, 3).map(req => <RequestCard key={req.id} req={req} isDark={isDark} colors={colors} ACCENT={ACCENT} onShare={handleShare} onView={() => setSelectedRequest(req)} />)
+                  requests.slice(0, 3).map(req => <RequestCard key={req.id} req={req} isDark={isDark} colors={colors} ACCENT={ACCENT} onShare={handleShare} onView={() => setSelectedRequest(req)} username={username} onEdit={() => openEditRequest(req)} onDelete={() => handleDeleteRequest(req.id)} />)
                 }
               </div>
             </div>
@@ -774,7 +841,7 @@ export default function BloodDonation() {
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: autoFillGrid(340, bp), gap: 20 }}>
                 {requests.map(req => (
-                  <RequestCard key={req.id} req={req} isDark={isDark} colors={colors} ACCENT={ACCENT} onShare={handleShare} onView={() => setSelectedRequest(req)} expanded />
+                  <RequestCard key={req.id} req={req} isDark={isDark} colors={colors} ACCENT={ACCENT} onShare={handleShare} onView={() => setSelectedRequest(req)} username={username} onEdit={() => openEditRequest(req)} onDelete={() => handleDeleteRequest(req.id)} expanded />
                 ))}
               </div>
             )}
@@ -852,7 +919,7 @@ export default function BloodDonation() {
             ) : (
               <div style={{ display: "grid", gap: 16 }}>
                 {communityPosts.map(post => (
-                  <CommunityPostCard key={post.id} post={post} isDark={isDark} colors={colors} ACCENT={ACCENT} onLike={() => handleLike(post.id)} />
+                  <CommunityPostCard key={post.id} post={post} isDark={isDark} colors={colors} ACCENT={ACCENT} onLike={() => handleLike(post.id)} username={username} onEdit={() => openEditPost(post)} onDelete={() => handleDeletePost(post.id)} />
                 ))}
               </div>
             )}
@@ -985,9 +1052,9 @@ export default function BloodDonation() {
         )}
       </div>
 
-      {/* ════════════════════════════════════════════════════════════════════ */}
+      {/* ════════════════════════════════════════════════════════════════ */}
       {/* MODALS */}
-      {/* ════════════════════════════════════════════════════════════════════ */}
+      {/* ════════════════════════════════════════════════════════════════ */}
 
       {/* ── DONOR REGISTRATION MODAL ── */}
       {showDonorForm && (
@@ -1164,10 +1231,17 @@ export default function BloodDonation() {
 
       {/* ── BLOOD REQUEST MODAL ── */}
       {showRequestForm && (
-        <Modal onClose={() => setShowRequestForm(false)} isDark={isDark} colors={colors}
-          title="Create Blood Request" subtitle="Fill in patient details to find matching donors"
-          headerGrad="linear-gradient(135deg,#4f46e5,#7c3aed)"
-        >
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div style={{ background: isDark ? "#1e293b" : "#fff", borderRadius: 24, padding: bp.isMobile ? 24 : 32, width: "100%", maxWidth: 650, maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+              <div>
+                <h2 style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 900, color: colors.text_primary }}>{editRequestId ? "Edit Blood Request" : "New Blood Request"}</h2>
+                <p style={{ margin: 0, fontSize: 13, color: colors.text_muted }}>Find a lifesaver in your area</p>
+              </div>
+              <button onClick={() => { setShowRequestForm(false); setEditRequestId(null); }} style={{ background: isDark ? "rgba(255,255,255,0.06)" : "#f3f4f6", border: "none", width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: colors.text_muted, cursor: "pointer" }}>
+                <X size={18} />
+              </button>
+            </div>
           <div style={{ display: "grid", gap: 14 }}>
             <div style={{ display: "grid", gridTemplateColumns: formGridCols(bp), gap: 12 }}>
               <div>
@@ -1249,7 +1323,8 @@ export default function BloodDonation() {
               </button>
             </div>
           </div>
-        </Modal>
+          </div>
+        </div>
       )}
 
       {/* ── COMMUNITY POST MODAL ── */}
@@ -1547,9 +1622,10 @@ function DonorCard({ donor, isDark, colors, ACCENT, onContact }) {
   );
 }
 
-function RequestCard({ req, isDark, colors, ACCENT, onShare, onView, expanded }) {
+function RequestCard({ req, isDark, colors, ACCENT, onShare, onView, expanded, username, onEdit, onDelete }) {
   const urgCfg = URGENCY_COLORS[req.urgency] || URGENCY_COLORS.normal;
   const stsCfg = STATUS_COLORS[req.status] || STATUS_COLORS.open;
+  const isOwner = req.requested_by_username === username;
   return (
     <div
       className="bd-card"
@@ -1677,10 +1753,11 @@ function EmergencyCard({ req, isDark, colors, onShare }) {
   );
 }
 
-function CommunityPostCard({ post, isDark, colors, ACCENT, onLike }) {
+function CommunityPostCard({ post, isDark, colors, ACCENT, onLike, username, onEdit, onDelete }) {
   const [showComments, setShowComments] = useState(false);
   const typeColors = { story: "#2563eb", awareness: "#059669", request: "#dc2626" };
   const typeLabels = { story: "📖 Story", awareness: "💡 Awareness", request: "🩸 Request" };
+  const isOwner = post.author_username === username;
   return (
     <div className="bd-card" style={{
       background: isDark ? "#1e293b" : "#fff", borderRadius: 18,

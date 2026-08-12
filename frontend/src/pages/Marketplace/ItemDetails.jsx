@@ -1,19 +1,67 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
-import { MessageCircle, Heart, Share2, Tag, Book, User, Phone } from "lucide-react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { MessageCircle, Heart, Share2, Tag, Book, User, Phone, Edit, Trash2, X } from "lucide-react";
 import api from "../../services/api";
+import toast from "react-hot-toast";
 
 export default function ItemDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [editForm, setEditForm] = useState({});
+  const [saving, setSaving] = useState(false);
+
+  const username = localStorage.getItem("username");
 
   useEffect(() => {
+    fetchItem();
+  }, [id]);
+
+  const fetchItem = () => {
     api.get(`marketplace/items/${id}/`).then(res => {
       setItem(res.data);
+      setEditForm({
+        title: res.data.title,
+        price: res.data.price,
+        condition: res.data.condition,
+        course_code: res.data.course_code || "",
+        department: res.data.department || "",
+        semester: res.data.semester || "",
+        description: res.data.description || "",
+      });
       setLoading(false);
     }).catch(console.error);
-  }, [id]);
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm("Are you sure you want to delete this item?")) return;
+    setDeleteLoading(true);
+    try {
+      await api.delete(`marketplace/items/${id}/`);
+      toast.success("Item deleted successfully");
+      navigate("/marketplace");
+    } catch (e) {
+      toast.error("Failed to delete item");
+      setDeleteLoading(false);
+    }
+  };
+
+  const handleEditSubmit = async () => {
+    setSaving(true);
+    try {
+      await api.patch(`marketplace/items/${id}/`, editForm);
+      toast.success("Item updated successfully");
+      setShowEdit(false);
+      fetchItem();
+    } catch (e) {
+      toast.error("Failed to update item");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (loading) return (
     <div className="flex justify-center items-center h-full py-20">
@@ -58,7 +106,7 @@ export default function ItemDetails() {
                 <Heart size={18} fill={item.is_saved ? "currentColor" : "none"} />
               </button>
             </div>
-          </div>
+            </div>
 
           <h1 className="text-3xl font-bold text-white mb-2">{item.title}</h1>
           
@@ -134,6 +182,50 @@ export default function ItemDetails() {
           </div>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      {showEdit && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-900 border border-gray-800 rounded-3xl p-8 max-w-lg w-full">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-white">Edit Item</h2>
+              <button onClick={() => setShowEdit(false)} className="text-gray-400 hover:text-white">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-gray-400 text-sm font-bold mb-2">Title</label>
+                <input type="text" value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})} className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500" />
+              </div>
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="block text-gray-400 text-sm font-bold mb-2">Price (৳)</label>
+                  <input type="number" value={editForm.price} onChange={e => setEditForm({...editForm, price: e.target.value})} className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500" />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-gray-400 text-sm font-bold mb-2">Condition</label>
+                  <select value={editForm.condition} onChange={e => setEditForm({...editForm, condition: e.target.value})} className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500">
+                    <option value="new">New</option>
+                    <option value="like_new">Like New</option>
+                    <option value="good">Good</option>
+                    <option value="fair">Fair</option>
+                    <option value="poor">Poor</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-gray-400 text-sm font-bold mb-2">Description</label>
+                <textarea value={editForm.description} onChange={e => setEditForm({...editForm, description: e.target.value})} rows={4} className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500"></textarea>
+              </div>
+              <div className="flex gap-4 pt-4">
+                <button onClick={() => setShowEdit(false)} className="flex-1 py-3 bg-gray-800 text-white rounded-xl font-bold hover:bg-gray-700 transition-colors">Cancel</button>
+                <button onClick={handleEditSubmit} disabled={saving} className="flex-1 py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 transition-colors">{saving ? 'Saving...' : 'Save Changes'}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

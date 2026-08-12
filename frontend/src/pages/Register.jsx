@@ -444,6 +444,62 @@ function SuccessCheck({ isDark }) {
 /* ══════════════════════════════════════
    MAIN
 ══════════════════════════════════════ */
+const Spinner = () => (
+  <motion.div
+    animate={{ rotate: 360 }}
+    transition={{ duration:0.8, repeat:Infinity, ease:"linear" }}
+    style={{
+      width:18, height:18, borderRadius:"50%",
+      border:"2.5px solid rgba(255,255,255,0.3)",
+      borderTopColor:"#fff", flexShrink:0,
+    }}
+  />
+);
+
+const PrimaryBtn = ({ children, onClick, loading: btnLoading }) => {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  const ac = isDark ? "#f59e0b" : "#7C3AED";
+  const acSecondary = isDark ? "#d97706" : "#4F46E5";
+  const acRgb = isDark ? "245,158,11" : "124,58,237";
+  return (
+    <ShineBtn
+      onClick={onClick}
+      loading={btnLoading}
+      style={{
+        width:"100%", padding:"14px 24px",
+        background: btnLoading
+          ? (isDark?"rgba(245,158,11,0.5)":"rgba(124,58,237,0.5)")
+          : `linear-gradient(135deg,${ac},${acSecondary})`,
+        color: isDark?"#0f172a":"#fff",
+        border:"none", borderRadius:12, fontWeight:800, fontSize:15,
+        fontFamily:"Inter,sans-serif", letterSpacing:"0.2px",
+        boxShadow: btnLoading ? "none" : `0 6px 24px rgba(${acRgb},0.38)`,
+        display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+        transition:"background 0.3s, box-shadow 0.3s",
+      }}
+    >
+      {btnLoading ? <><Spinner /><span>Please wait...</span></> : children}
+    </ShineBtn>
+  );
+};
+
+const GhostBtn = ({ children, onClick }) => {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  return (
+    <ShineBtn onClick={onClick} style={{
+      padding:"14px 18px", minWidth:50,
+      background: isDark?"rgba(15,23,42,0.5)":"rgba(249,246,255,0.7)",
+      color: isDark?"#64748b":"#9ca3af",
+      border:`2px solid ${isDark?"rgba(245,158,11,0.12)":"rgba(124,58,237,0.18)"}`,
+      borderRadius:12, fontWeight:700, fontFamily:"Inter,sans-serif",
+      boxShadow:"none",
+      display:"flex", alignItems:"center", justifyContent:"center",
+    }}>{children}</ShineBtn>
+  );
+};
+
 export default function Register() {
   const navigate = useNavigate();
   const { theme } = useTheme();
@@ -523,50 +579,7 @@ export default function Register() {
     exit: d => ({ y: d>0?-12:12, opacity:0, scale:0.98, filter:"blur(2px)" }),
   };
 
-  const Spinner = () => (
-    <motion.div
-      animate={{ rotate: 360 }}
-      transition={{ duration:0.8, repeat:Infinity, ease:"linear" }}
-      style={{
-        width:18, height:18, borderRadius:"50%",
-        border:"2.5px solid rgba(255,255,255,0.3)",
-        borderTopColor:"#fff", flexShrink:0,
-      }}
-    />
-  );
 
-  const PrimaryBtn = ({ children, onClick, loading: btnLoading }) => (
-    <ShineBtn
-      onClick={onClick}
-      loading={btnLoading}
-      style={{
-        width:"100%", padding:"14px 24px",
-        background: btnLoading
-          ? (isDark?"rgba(245,158,11,0.5)":"rgba(124,58,237,0.5)")
-          : `linear-gradient(135deg,${ac},${acSecondary})`,
-        color: isDark?"#0f172a":"#fff",
-        border:"none", borderRadius:12, fontWeight:800, fontSize:15,
-        fontFamily:"Inter,sans-serif", letterSpacing:"0.2px",
-        boxShadow: btnLoading ? "none" : `0 6px 24px rgba(${acRgb},0.38)`,
-        display:"flex", alignItems:"center", justifyContent:"center", gap:8,
-        transition:"background 0.3s, box-shadow 0.3s",
-      }}
-    >
-      {btnLoading ? <><Spinner /><span>Please wait...</span></> : children}
-    </ShineBtn>
-  );
-
-  const GhostBtn = ({ children, onClick }) => (
-    <ShineBtn onClick={onClick} style={{
-      padding:"14px 18px", minWidth:50,
-      background: isDark?"rgba(15,23,42,0.5)":"rgba(249,246,255,0.7)",
-      color: isDark?"#64748b":"#9ca3af",
-      border:`2px solid ${isDark?"rgba(245,158,11,0.12)":"rgba(124,58,237,0.18)"}`,
-      borderRadius:12, fontWeight:700, fontFamily:"Inter,sans-serif",
-      boxShadow:"none",
-      display:"flex", alignItems:"center", justifyContent:"center",
-    }}>{children}</ShineBtn>
-  );
 
   return (
     <>
