@@ -346,7 +346,7 @@ export default function NotesRepository() {
                     </button>
                   </>
                 )}
-                {selectedNote.uploaded_by === username && (
+                { (selectedNote.uploaded_by === username || selectedNote.uploaded_by?.split(' ')[0] === username) && (
                   <>
                     <button
                       onClick={() => openEditModal(selectedNote)}
@@ -544,7 +544,7 @@ export default function NotesRepository() {
                         {t("notes.intakeLabel", { value: note.intake })}
                       </span>
                       <div style={{ display: "flex", gap: 6 }}>
-                        {note.uploaded_by === username && (
+                        { (note.uploaded_by === username || note.uploaded_by?.split(' ')[0] === username) && (
                           <>
                             <button
                               onClick={(e) => {

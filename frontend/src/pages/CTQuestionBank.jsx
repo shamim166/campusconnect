@@ -454,7 +454,7 @@ export default function CTQuestionBank() {
               >
                 <Download size={16} /> {t("common.download")}
               </button>
-              {selectedQuestion.uploaded_by === username && (
+              { (selectedQuestion.uploaded_by === username || selectedQuestion.uploaded_by?.split(' ')[0] === username) && (
                 <>
                   <button
                     onClick={() => openEditModal(selectedQuestion)}
@@ -825,7 +825,7 @@ export default function CTQuestionBank() {
                     {question.total_questions} {t("ctQuestions.questions")}
                   </span>
                   <div style={{ display: "flex", gap: 6 }}>
-                    {question.uploaded_by === username && (
+                    { (question.uploaded_by === username || question.uploaded_by?.split(' ')[0] === username) && (
                       <>
                         <button
                           onClick={(e) => {
