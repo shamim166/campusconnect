@@ -177,7 +177,7 @@ export default function NotesRepository() {
     if (uploadFile) formData.append("pdf_file", uploadFile);
 
     try {
-      await api.patch(`notes/${editNoteId}/`, formData, { headers: { "Content-Type": "multipart/form-data" } });
+      await api.patch(`notes/${editNoteId}/`, formData);
       toast.success("Updated successfully");
       resetModal();
       invalidateCache("notes_list");

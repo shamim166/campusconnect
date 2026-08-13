@@ -47,9 +47,7 @@ export default function SellItem() {
     }
 
     try {
-      await api.post('marketplace/items/', data, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      await api.post('marketplace/items/', data);
       navigate('/marketplace/my-listings');
     } catch (error) {
       console.error(error);

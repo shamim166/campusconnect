@@ -29,9 +29,7 @@ export default function ClaimAdminModal({ isOpen, onClose }) {
         formData.append('proof_image', proofImage);
       }
 
-      await api.post('clubs/claims/', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      await api.post('clubs/claims/', formData);
       alert("Claim submitted successfully! Awaiting University Admin approval.");
       onClose();
       setSelectedClub("");

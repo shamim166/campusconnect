@@ -35,9 +35,7 @@ export default function CreatePostModal({ isOpen, onClose, clubId, onPostCreated
       data.append('status', 'approved'); // Admins posts can be pre-approved or auto-approved on backend
       if (image) data.append('image', image);
 
-      await api.post(`clubs/${clubId}/posts/`, data, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      await api.post(`clubs/${clubId}/posts/`, data);
       
       toast.success("Post created successfully!");
       onPostCreated();
