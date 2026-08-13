@@ -286,6 +286,7 @@ export default function AdminDashboard() {
   const [jobFilter, setJobFilter] = useState("pending");
   const [pendingJobCount, setPendingJobCount] = useState(0);
   const [reviewJob, setReviewJob] = useState(null);
+  const [rejectReason, setRejectReason] = useState("");
 
   const [adminClaims, setAdminClaims] = useState([]);
   const [claimsLoading, setClaimsLoading] = useState(false);
@@ -326,10 +327,10 @@ export default function AdminDashboard() {
   const loadJobs = async () => {
     try {
       setJobsLoading(true);
-      const res = await api.get("jobs/all_jobs/");
-      const data = Array.isArray(res.data) ? res.data : [];
+      const res = await api.get("admin/jobs/");
+      const data = res.data.jobs || [];
       setAdminJobs(data.filter(j => j.status === jobFilter));
-      setPendingJobCount(data.filter(j => j.status === "pending").length);
+      setPendingJobCount(res.data.pending_count || 0);
     } catch (error) {
       console.error("Failed to load jobs", error);
     } finally {
@@ -457,7 +458,7 @@ export default function AdminDashboard() {
       toast.success(action === "approve" ? "Job approved & published" : "Job rejected");
       setReviewJob(null);
       setRejectReason("");
-      loadAdminJobs(jobFilter);
+      loadJobs();
     } catch {
       toast.error("Review failed");
     } finally {
