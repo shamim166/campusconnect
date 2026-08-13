@@ -37,7 +37,17 @@ export default function MarketplaceHome() {
     const matchesSearch = item.title.toLowerCase().includes(search.toLowerCase()) ||
                           (item.course_code && item.course_code.toLowerCase().includes(search.toLowerCase()));
     const matchesFilter = listingFilter === "all" || item.listing_type === listingFilter;
-    return matchesSearch && matchesFilter;
+    
+    let matchesCategory = true;
+    if (activeCategory !== "All") {
+        if (activeCategory === "Others") {
+            matchesCategory = !["Books", "Electronics"].includes(item.category);
+        } else {
+            matchesCategory = item.category === activeCategory;
+        }
+    }
+
+    return matchesSearch && matchesFilter && matchesCategory;
   });
 
   const categories = [
@@ -52,7 +62,12 @@ export default function MarketplaceHome() {
       {/* Header and Search */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Campus Marketplace</h1>
+          <div className="flex items-center gap-4 mb-2">
+            <h1 className="text-3xl font-extrabold text-gray-900">Campus Marketplace</h1>
+            <Link to="/marketplace/sell" className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-sm font-bold py-2 px-4 rounded-xl shadow-md transition-all flex items-center gap-2 border border-orange-400">
+              <span className="text-lg leading-none">+</span> Post Ad
+            </Link>
+          </div>
           <p className="text-gray-600 font-medium">Buy, sell, or exchange study materials</p>
         </div>
         

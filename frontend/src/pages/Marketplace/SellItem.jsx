@@ -48,7 +48,8 @@ export default function SellItem() {
 
     try {
       await api.post('marketplace/items/', data);
-      navigate('/marketplace/my-listings');
+      localStorage.removeItem('cc_cache_marketplace_items');
+      navigate('/marketplace');
     } catch (error) {
       console.error(error);
       alert("Failed to create listing.");
