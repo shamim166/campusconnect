@@ -454,6 +454,55 @@ export default function CTQuestionBank() {
               >
                 <Download size={16} /> {t("common.download")}
               </button>
+              {selectedQuestion.uploaded_by === username && (
+                <>
+                  <button
+                    onClick={() => openEditModal(selectedQuestion)}
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "8px",
+                      padding: "14px 20px",
+                      background: colors.bg_secondary,
+                      color: ACCENT,
+                      border: `1.5px solid ${ACCENT}`,
+                      borderRadius: "12px",
+                      fontSize: "14px",
+                      fontWeight: "700",
+                      cursor: "pointer",
+                      fontFamily: "Inter, sans-serif",
+                      transition: "all 0.3s",
+                    }}
+                  >
+                    <Edit size={16} /> Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(selectedQuestion.id)}
+                    disabled={deleteLoading}
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "8px",
+                      padding: "14px 20px",
+                      background: "rgba(239,68,68,0.1)",
+                      color: "#ef4444",
+                      border: "1px solid rgba(239,68,68,0.3)",
+                      borderRadius: "12px",
+                      fontSize: "14px",
+                      fontWeight: "700",
+                      cursor: "pointer",
+                      fontFamily: "Inter, sans-serif",
+                      transition: "all 0.3s",
+                    }}
+                  >
+                    <Trash2 size={16} /> Delete
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -776,6 +825,61 @@ export default function CTQuestionBank() {
                     {question.total_questions} {t("ctQuestions.questions")}
                   </span>
                   <div style={{ display: "flex", gap: 6 }}>
+                    {question.uploaded_by === username && (
+                      <>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEditModal(question);
+                          }}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px",
+                            padding: "6px 12px",
+                            background: colors.bg_secondary,
+                            color: ACCENT,
+                            border: `1px solid ${ACCENT}`,
+                            borderRadius: "6px",
+                            fontSize: "11px",
+                            fontWeight: "700",
+                            cursor: "pointer",
+                            fontFamily: "Inter, sans-serif",
+                            transition: "all 0.2s",
+                          }}
+                          onMouseEnter={(e) => (e.target.style.transform = "scale(1.05)")}
+                          onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
+                        >
+                          <Edit size={12} /> Edit
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(question.id);
+                          }}
+                          disabled={deleteLoading}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px",
+                            padding: "6px 12px",
+                            background: "rgba(239,68,68,0.1)",
+                            color: "#ef4444",
+                            border: "1px solid rgba(239,68,68,0.3)",
+                            borderRadius: "6px",
+                            fontSize: "11px",
+                            fontWeight: "700",
+                            cursor: "pointer",
+                            fontFamily: "Inter, sans-serif",
+                            transition: "all 0.2s",
+                          }}
+                          onMouseEnter={(e) => (e.target.style.transform = "scale(1.05)")}
+                          onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
+                        >
+                          <Trash2 size={12} /> Delete
+                        </button>
+                      </>
+                    )}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();

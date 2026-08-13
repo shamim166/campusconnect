@@ -346,6 +346,23 @@ export default function NotesRepository() {
                     </button>
                   </>
                 )}
+                {selectedNote.uploaded_by === username && (
+                  <>
+                    <button
+                      onClick={() => openEditModal(selectedNote)}
+                      style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "14px 20px", background: colors.bg_secondary, color: ACCENT, border: `1.5px solid ${ACCENT}`, borderRadius: 14, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}
+                    >
+                      <Edit size={16} /> Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(selectedNote.id)}
+                      disabled={deleteLoading}
+                      style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "14px 20px", background: "rgba(239,68,68,0.1)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 14, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}
+                    >
+                      <Trash2 size={16} /> Delete
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -527,6 +544,29 @@ export default function NotesRepository() {
                         {t("notes.intakeLabel", { value: note.intake })}
                       </span>
                       <div style={{ display: "flex", gap: 6 }}>
+                        {note.uploaded_by === username && (
+                          <>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEditModal(note);
+                              }}
+                              style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", background: colors.bg_secondary, color: ACCENT, border: `1px solid ${ACCENT}`, borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}
+                            >
+                              <Edit size={12} /> Edit
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(note.id);
+                              }}
+                              disabled={deleteLoading}
+                              style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", background: "rgba(239,68,68,0.1)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}
+                            >
+                              <Trash2 size={12} /> Delete
+                            </button>
+                          </>
+                        )}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
