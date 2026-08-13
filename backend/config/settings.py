@@ -209,10 +209,9 @@ SIMPLE_JWT = {
 # =========================
 
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', '')
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'gkgywfig'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', '397449281457139'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', 'Otm443G3McbVCBun2lykjuDrRsU')
 }
 
-if os.environ.get('CLOUDINARY_CLOUD_NAME'):
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
