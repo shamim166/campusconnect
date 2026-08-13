@@ -23,6 +23,7 @@ import ThemeLanguageSwitcher from "../components/ThemeLanguageSwitcher";
 import { getThemeColors } from "../utils/themeColors";
 import toast from "react-hot-toast";
 import FloatingBackButton from "../components/FloatingBackButton";
+import { downloadFile } from "../utils/downloadHelper";
 
 const ACCENT = "#2563EB";
 const DEPARTMENTS = ["CSE", "EEE", "BBA", "English", "Civil", "Architecture", "Law"];
@@ -429,10 +430,7 @@ export default function CTQuestionBank() {
               </button>
               <button
                 onClick={() => {
-                  const link = document.createElement("a");
-                  link.href = getFileUrl(selectedQuestion);
-                  link.download = selectedQuestion.title;
-                  link.click();
+                  downloadFile(getFileUrl(selectedQuestion), `${selectedQuestion.title}.pdf`);
                 }}
                 style={{
                   flex: 1,
@@ -781,10 +779,7 @@ export default function CTQuestionBank() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        const link = document.createElement("a");
-                        link.href = getFileUrl(question);
-                        link.download = question.title;
-                        link.click();
+                        downloadFile(getFileUrl(question), `${question.title}.pdf`);
                       }}
                       style={{
                         display: "flex",

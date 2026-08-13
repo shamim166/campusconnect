@@ -24,6 +24,7 @@ import ThemeLanguageSwitcher from "../components/ThemeLanguageSwitcher";
 import { getThemeColors } from "../utils/themeColors";
 import toast from "react-hot-toast";
 import FloatingBackButton from "../components/FloatingBackButton";
+import { downloadFile } from "../utils/downloadHelper";
 
 const ACCENT = "#7C3AED";
 const ACCENT_PINK = "#ec4899";
@@ -334,15 +335,15 @@ export default function NotesRepository() {
                     >
                       <Eye size={16} /> {t("notes.viewPdf")}
                     </button>
-                    <a
-                      href={selectedNote.pdf_file}
-                      download
-                      target="_blank"
-                      rel="noreferrer"
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        downloadFile(selectedNote.pdf_file, `${selectedNote.title}.pdf`);
+                      }}
                       style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "14px 20px", background: colors.bg_secondary, color: ACCENT, border: `1.5px solid ${ACCENT}`, borderRadius: 14, fontSize: 14, fontWeight: 700, cursor: "pointer", textDecoration: "none", fontFamily: "Inter, sans-serif" }}
                     >
                       <Download size={16} /> {t("common.download")}
-                    </a>
+                    </button>
                   </>
                 )}
               </div>
@@ -529,7 +530,9 @@ export default function NotesRepository() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (note.pdf_file) window.open(note.pdf_file, "_blank");
+                            if (note.pdf_file) {
+                              downloadFile(note.pdf_file, `${note.title}.pdf`);
+                            }
                           }}
                           style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_PINK})`, color: "white", border: "none", borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}
                         >
