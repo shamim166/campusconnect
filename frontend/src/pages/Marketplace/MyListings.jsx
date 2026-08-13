@@ -26,6 +26,7 @@ export default function MyListings() {
     if (window.confirm("Are you sure you want to mark this item as sold?")) {
       try {
         await api.post(`marketplace/items/${id}/mark_sold/`);
+        localStorage.removeItem('cc_cache_marketplace_items');
         fetchMyItems(); // Refresh list
       } catch (error) {
         console.error(error);
@@ -38,6 +39,7 @@ export default function MyListings() {
     if (window.confirm("Are you sure you want to delete this listing?")) {
       try {
         await api.delete(`marketplace/items/${id}/`);
+        localStorage.removeItem('cc_cache_marketplace_items');
         fetchMyItems(); // Refresh list
       } catch (error) {
         console.error(error);
@@ -121,12 +123,13 @@ export default function MyListings() {
                       <CheckCircle size={18} />
                     </button>
                   )}
-                  <button 
+                  <Link 
+                    to={`/marketplace/item/${item.id}`}
                     className="p-2 bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white rounded-lg transition-colors flex items-center justify-center"
                     title="Edit"
                   >
                     <Edit2 size={18} />
-                  </button>
+                  </Link>
                   <button 
                     onClick={() => handleDelete(item.id)}
                     className="p-2 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white rounded-lg transition-colors flex items-center justify-center"

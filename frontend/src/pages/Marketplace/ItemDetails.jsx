@@ -41,6 +41,7 @@ export default function ItemDetails() {
     setDeleteLoading(true);
     try {
       await api.delete(`marketplace/items/${id}/`);
+      localStorage.removeItem('cc_cache_marketplace_items');
       toast.success("Item deleted successfully");
       navigate("/marketplace");
     } catch (e) {
@@ -53,6 +54,7 @@ export default function ItemDetails() {
     setSaving(true);
     try {
       await api.patch(`marketplace/items/${id}/`, editForm);
+      localStorage.removeItem('cc_cache_marketplace_items');
       toast.success("Item updated successfully");
       setShowEdit(false);
       fetchItem();
@@ -169,14 +171,29 @@ export default function ItemDetails() {
             </div>
 
             <div className="flex gap-4">
-              <button className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-xl transition-colors flex items-center justify-center gap-2">
-                <MessageCircle size={20} />
-                {item.listing_type === 'buy' ? 'Chat with Buyer' : 'Chat with Seller'}
-              </button>
-              {item.is_negotiable && (
-                <button className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 rounded-xl transition-colors border border-gray-600">
-                  {item.listing_type === 'buy' ? 'Propose Price' : 'Make Offer'}
-                </button>
+              {item.seller_name === username ? (
+                <>
+                  <button onClick={() => setShowEdit(true)} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-colors flex items-center justify-center gap-2">
+                    <Edit size={20} />
+                    Edit Item
+                  </button>
+                  <button onClick={handleDelete} disabled={deleteLoading} className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl transition-colors flex items-center justify-center gap-2">
+                    <Trash2 size={20} />
+                    {deleteLoading ? 'Deleting...' : 'Delete Item'}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-xl transition-colors flex items-center justify-center gap-2">
+                    <MessageCircle size={20} />
+                    {item.listing_type === 'buy' ? 'Chat with Buyer' : 'Chat with Seller'}
+                  </button>
+                  {item.is_negotiable && (
+                    <button className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 rounded-xl transition-colors border border-gray-600">
+                      {item.listing_type === 'buy' ? 'Propose Price' : 'Make Offer'}
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </div>
