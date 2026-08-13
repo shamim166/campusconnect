@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Package, Edit2, Trash2, CheckCircle } from "lucide-react";
+import { Package, Edit2, Trash2, CheckCircle, Search } from "lucide-react";
 import api from "../../services/api";
 
 export default function MyListings() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('active'); // active, sold, lost, found, resolved
 
   useEffect(() => {
     fetchMyItems();
@@ -22,15 +23,15 @@ export default function MyListings() {
     }
   };
 
-  const handleMarkSold = async (id) => {
-    if (window.confirm("Are you sure you want to mark this item as sold?")) {
+  const handleUpdateStatus = async (id, newStatus) => {
+    if (window.confirm(`Are you sure you want to mark this item as ${newStatus}?`)) {
       try {
-        await api.post(`marketplace/items/${id}/mark_sold/`);
+        await api.post(`marketplace/items/${id}/update_status/`, { status: newStatus });
         localStorage.removeItem('cc_cache_marketplace_items');
         fetchMyItems(); // Refresh list
       } catch (error) {
         console.error(error);
-        alert("Failed to mark item as sold.");
+        alert("Failed to update status.");
       }
     }
   };
@@ -48,12 +49,21 @@ export default function MyListings() {
     }
   };
 
+  const filteredItems = items.filter(item => {
+    if (activeTab === 'active') return item.status === 'active';
+    if (activeTab === 'sold') return item.status === 'sold';
+    if (activeTab === 'lost') return item.listing_type === 'LOST_AND_FOUND' && item.lost_or_found === 'lost';
+    if (activeTab === 'found') return item.listing_type === 'LOST_AND_FOUND' && item.lost_or_found === 'found';
+    if (activeTab === 'resolved') return item.status === 'resolved';
+    return true;
+  });
+
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">My Listings</h1>
-          <p className="text-gray-400">Manage the items you're selling</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Listings</h1>
+          <p className="text-gray-600">Manage the items you're selling or looking for</p>
         </div>
         <Link 
           to="/marketplace/sell"
@@ -63,76 +73,97 @@ export default function MyListings() {
         </Link>
       </div>
 
+      <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+        {['active', 'sold', 'lost', 'found', 'resolved'].map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-4 py-2 rounded-full font-semibold whitespace-nowrap capitalize transition-colors ${
+              activeTab === tab ? 'bg-orange-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
       {loading ? (
         <div className="flex justify-center py-20">
-          <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
-      ) : items.length === 0 ? (
-        <div className="text-center py-20 bg-gray-800/50 rounded-2xl border border-gray-700">
-          <Package size={48} className="mx-auto text-gray-500 mb-4" />
-          <h3 className="text-xl font-bold text-gray-300">You haven't listed any items</h3>
-          <p className="text-gray-500 mb-6">Start selling your old books and gear.</p>
-          <Link to="/marketplace/sell" className="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-colors">
-            Post an Ad
-          </Link>
+      ) : filteredItems.length === 0 ? (
+        <div className="text-center py-20 bg-white rounded-2xl border border-gray-200 shadow-sm">
+          <Package size={48} className="mx-auto text-gray-400 mb-4" />
+          <h3 className="text-xl font-bold text-gray-700">No items found in this tab</h3>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4">
-          {items.map((item) => (
-            <div key={item.id} className="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden flex flex-col sm:flex-row">
-              <div className="sm:w-48 h-48 sm:h-auto shrink-0 bg-gray-700 p-2">
+          {filteredItems.map((item) => (
+            <div key={item.id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col sm:flex-row shadow-sm hover:shadow-md transition-shadow">
+              <div className="sm:w-48 h-48 sm:h-auto shrink-0 bg-gray-50 p-2 border-r border-gray-100 flex items-center justify-center">
                 {item.image ? (
                   <img src={item.image} alt={item.title} className="w-full h-full object-cover rounded-xl" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-800 rounded-xl">
-                    <Package size={40} className="text-gray-600" />
-                  </div>
+                  <Package size={40} className="text-gray-300" />
                 )}
               </div>
               
               <div className="p-6 flex-1 flex flex-col justify-center relative">
                 <div className="flex justify-between items-start mb-2 pr-24">
-                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    <Link to={`/marketplace/item/${item.id}`} className="hover:text-orange-400 transition-colors">
+                  <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    <Link to={`/marketplace/item/${item.id}`} className="hover:text-orange-500 transition-colors">
                       {item.title}
                     </Link>
-                    {item.listing_type === 'buy' ? (
-                      <span className="bg-blue-600 text-white text-[10px] uppercase px-2 py-0.5 rounded-full">Buy</span>
+                    {item.listing_type === 'LOST_AND_FOUND' ? (
+                      <span className={`text-white text-[10px] uppercase px-2 py-0.5 rounded-full ${item.lost_or_found === 'lost' ? 'bg-red-500' : 'bg-green-500'}`}>
+                        {item.lost_or_found}
+                      </span>
                     ) : (
-                      <span className="bg-orange-500 text-white text-[10px] uppercase px-2 py-0.5 rounded-full">Sell</span>
+                      <span className="bg-orange-500 text-white text-[10px] uppercase px-2 py-0.5 rounded-full">For Sale</span>
                     )}
                   </h3>
                 </div>
-                <div className="text-2xl font-bold text-white mb-2">৳ {item.price}</div>
-                <div className="space-y-1 text-sm text-gray-400">
-                  <div>Condition: <span className="text-gray-300 capitalize">{item.condition.replace('_', ' ')}</span></div>
+                {item.listing_type === 'FOR_SALE' && (
+                  <div className="text-2xl font-bold text-gray-900 mb-2">৳ {item.price}</div>
+                )}
+                <div className="space-y-1 text-sm text-gray-500">
+                  {item.listing_type === 'FOR_SALE' && <div>Condition: <span className="text-gray-700 capitalize">{item.condition.replace('_', ' ')}</span></div>}
                   <div>Status: 
-                    <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold ${item.status === 'active' ? 'bg-green-900/50 text-green-400 border border-green-500/30' : 'bg-gray-700 text-gray-300 border border-gray-600'}`}>
-                      {item.status.toUpperCase()}
+                    <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-700 border border-gray-200 uppercase">
+                      {item.status}
                     </span>
                   </div>
                 </div>
 
                 <div className="absolute top-6 right-6 flex flex-col sm:flex-row gap-2">
-                  {item.status === 'active' && (
+                  {item.status === 'active' && item.listing_type === 'FOR_SALE' && (
                     <button 
-                      onClick={() => handleMarkSold(item.id)}
-                      className="p-2 bg-green-600/20 text-green-400 hover:bg-green-600 hover:text-white rounded-lg transition-colors tooltip flex items-center justify-center"
+                      onClick={() => handleUpdateStatus(item.id, 'sold')}
+                      className="p-2 bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700 rounded-lg transition-colors tooltip flex items-center justify-center border border-green-200"
                       title="Mark as Sold"
                     >
                       <CheckCircle size={18} />
                     </button>
                   )}
+                  {item.status === 'active' && item.listing_type === 'LOST_AND_FOUND' && (
+                    <button 
+                      onClick={() => handleUpdateStatus(item.id, 'resolved')}
+                      className="p-2 bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700 rounded-lg transition-colors tooltip flex items-center justify-center border border-green-200"
+                      title="Mark as Resolved"
+                    >
+                      <CheckCircle size={18} />
+                    </button>
+                  )}
                   <Link 
-                    to={`/marketplace/item/${item.id}`}
-                    className="p-2 bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white rounded-lg transition-colors flex items-center justify-center"
+                    to={`/marketplace/item/${item.id}`} // We'll keep Edit navigating to item detail for now (or a specific edit page)
+                    className="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors flex items-center justify-center border border-blue-200"
                     title="Edit"
                   >
                     <Edit2 size={18} />
                   </Link>
                   <button 
                     onClick={() => handleDelete(item.id)}
-                    className="p-2 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white rounded-lg transition-colors flex items-center justify-center"
+                    className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors flex items-center justify-center border border-red-200"
                     title="Delete"
                   >
                     <Trash2 size={18} />

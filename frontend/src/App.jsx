@@ -34,7 +34,8 @@ import MarketplaceHome from "./pages/Marketplace/MarketplaceHome";
 import SellItem from "./pages/Marketplace/SellItem";
 import ItemDetails from "./pages/Marketplace/ItemDetails";
 import MyListings from "./pages/Marketplace/MyListings";
-import { Wishlist, Messages, Notifications as MarketplaceNotifications } from "./pages/Marketplace/MarketplacePlaceholderPages";
+import MarketplaceChat from "./pages/Marketplace/MarketplaceChat";
+import { Wishlist, Notifications as MarketplaceNotifications } from "./pages/Marketplace/MarketplacePlaceholderPages";
 
 import EmergencyLayout from "./layouts/EmergencyLayout";
 import EmergencyHome from "./pages/Emergency/EmergencyHome";
@@ -86,7 +87,7 @@ function AppRoutes() {
         <Route path="item/:id" element={<ItemDetails />} />
         <Route path="wishlist" element={<Wishlist />} />
         <Route path="my-listings" element={<MyListings />} />
-        <Route path="messages" element={<Messages />} />
+        <Route path="messages" element={<MarketplaceChat />} />
         <Route path="notifications" element={<MarketplaceNotifications />} />
       </Route>
       

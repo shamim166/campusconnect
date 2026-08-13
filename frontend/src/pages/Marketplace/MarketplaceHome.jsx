@@ -35,15 +35,25 @@ export default function MarketplaceHome() {
 
   const filteredItems = items.filter(item => {
     const matchesSearch = item.title.toLowerCase().includes(search.toLowerCase()) ||
-                          (item.course_code && item.course_code.toLowerCase().includes(search.toLowerCase()));
-    const matchesFilter = listingFilter === "all" || item.listing_type === listingFilter;
+                          (item.course_code && item.course_code.toLowerCase().includes(search.toLowerCase())) ||
+                          (item.location && item.location.toLowerCase().includes(search.toLowerCase()));
+    
+    // Listing filter
+    let matchesFilter = true;
+    if (listingFilter === "for_sale") {
+      matchesFilter = item.listing_type === 'FOR_SALE';
+    } else if (listingFilter === "lost_and_found") {
+      matchesFilter = item.listing_type === 'LOST_AND_FOUND';
+    }
     
     let matchesCategory = true;
     if (activeCategory !== "All") {
         if (activeCategory === "Others") {
-            matchesCategory = !["Books", "Electronics"].includes(item.category);
+            // Assume 1 and 2 are Books and Electronics ids, or check by name. 
+            // In the backend, category names might differ. For now, rely on category_name or ID.
+            matchesCategory = !["Books", "Electronics"].includes(item.category_name);
         } else {
-            matchesCategory = item.category === activeCategory;
+            matchesCategory = item.category_name === activeCategory;
         }
     }
 
@@ -68,7 +78,7 @@ export default function MarketplaceHome() {
               <span className="text-lg leading-none">+</span> Post Ad
             </Link>
           </div>
-          <p className="text-gray-600 font-medium">Buy, sell, or exchange study materials</p>
+          <p className="text-gray-600 font-medium">Buy, sell, exchange, or find lost items</p>
         </div>
         
         <div className="flex flex-col md:flex-row w-full md:w-auto gap-3">
@@ -76,7 +86,7 @@ export default function MarketplaceHome() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400" size={18} />
             <input
               type="text"
-              placeholder="Search items, courses..."
+              placeholder="Search items, courses, locations..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full bg-white border border-orange-200 rounded-xl py-3 pl-10 pr-4 text-gray-900 shadow-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
@@ -88,8 +98,8 @@ export default function MarketplaceHome() {
             className="bg-white border border-orange-200 text-gray-800 rounded-xl px-4 py-3 shadow-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 font-medium"
           >
             <option value="all">All Ads</option>
-            <option value="sell">For Sale</option>
-            <option value="buy">Looking to Buy</option>
+            <option value="for_sale">For Sale</option>
+            <option value="lost_and_found">Lost & Found</option>
           </select>
           <button className="bg-white border border-orange-200 p-3 rounded-xl hover:bg-orange-50 text-orange-600 transition-colors shadow-sm tooltip" title="More Filters">
             <Filter size={20} />
@@ -160,13 +170,15 @@ export default function MarketplaceHome() {
                   {item.image ? (
                     <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-800">
-                      <Book size={40} className="text-gray-600" />
+                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                      <Book size={40} className="text-gray-300" />
                     </div>
                   )}
                   <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
-                    {item.listing_type === 'buy' ? (
-                      <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">Looking to Buy</span>
+                    {item.listing_type === 'LOST_AND_FOUND' ? (
+                      <span className={`text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg ${item.lost_or_found === 'lost' ? 'bg-red-500' : 'bg-green-500'}`}>
+                        {item.lost_or_found === 'lost' ? 'Lost' : 'Found'}
+                      </span>
                     ) : (
                       <span className="bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">For Sale</span>
                     )}
