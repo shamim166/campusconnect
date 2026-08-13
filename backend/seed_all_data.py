@@ -137,7 +137,7 @@ for i in range(10):
 print("Seeding exactly 10 Marketplace Items...")
 MarketplaceItem.objects.all().delete()
 cat_book, _ = Category.objects.get_or_create(name="Books", slug="books")
-cat_lf, _ = Category.objects.get_or_create(name="Lost & Found", slug="lost-found")
+cat_lf, _ = Category.objects.get_or_create(name="Others", slug="others")
 items = ["Calculus Book", "Physics Textbook", "Lost Wallet", "Found USB Drive", "Engineering Drawing Kit", "Lost ID Card", "Found Keys", "Data Structures Book", "Scientific Calculator", "Lost Umbrella"]
 for i in range(10):
     MarketplaceItem.objects.create(
