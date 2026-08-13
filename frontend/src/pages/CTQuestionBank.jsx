@@ -160,7 +160,7 @@ export default function CTQuestionBank() {
       });
       toast.success(t("messages.uploadSuccess"));
       resetModal();
-      invalidateCache("ct_questions_list");
+      invalidateCache("ct_questions");
       fetchQuestions();
     } catch (error) {
       toast.error(error.response?.data?.error || t("messages.uploadFailed"));
@@ -199,7 +199,7 @@ export default function CTQuestionBank() {
       });
       toast.success("Updated successfully");
       resetModal();
-      invalidateCache("ct_questions_list");
+      invalidateCache("ct_questions");
       fetchQuestions();
     } catch (error) {
       toast.error(error.response?.data?.error || "Failed to update");
@@ -215,7 +215,7 @@ export default function CTQuestionBank() {
       await api.delete(`ct-questions/${id}/`);
       toast.success("Deleted successfully");
       if (selectedQuestion?.id === id) setSelectedQuestion(null);
-      invalidateCache("ct_questions_list");
+      invalidateCache("ct_questions");
       fetchQuestions();
     } catch (e) {
       toast.error("Failed to delete");
@@ -934,14 +934,27 @@ export default function CTQuestionBank() {
                 <label style={{ display: "block", fontSize: "13px", fontWeight: "700", color: colors.text_muted, marginBottom: "6px" }}>
                   {t("ctQuestions.courseLabel")}
                 </label>
-                <select value={uploadForm.course} onChange={(e) => handleFormChange("course", e.target.value)} style={selectStyle(uploadForm.course, colors, isDark)}>
-                  <option value="">{t("ctQuestions.selectCourse")}</option>
-                  {COURSES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
+                <input
+                  type="text"
+                  placeholder="e.g. CSE101"
+                  value={uploadForm.course}
+                  onChange={(e) => handleFormChange("course", e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "12px 14px",
+                    border: `1.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "#e5e7eb"}`,
+                    borderRadius: "10px",
+                    fontSize: "14px",
+                    outline: "none",
+                    background: colors.bg_input,
+                    color: colors.text_primary,
+                    boxSizing: "border-box",
+                    fontFamily: "Inter, sans-serif",
+                    transition: "all 0.3s",
+                  }}
+                  onFocus={(e) => (e.target.style.borderColor = ACCENT)}
+                  onBlur={(e) => (e.target.style.borderColor = isDark ? "rgba(255,255,255,0.08)" : "#e5e7eb")}
+                />
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: formGridCols(bp), gap: "12px" }}>
