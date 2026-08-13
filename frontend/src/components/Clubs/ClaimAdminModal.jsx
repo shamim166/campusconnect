@@ -37,9 +37,17 @@ export default function ClaimAdminModal({ isOpen, onClose }) {
       setProof("");
       setProofImage(null);
     } catch (error) {
-      console.error(error);
-      alert(error.response?.data?.non_field_errors?.[0] || error.response?.data?.detail || "Failed to submit claim.");
-    } finally {
+      let errMsg = "Failed to submit claim.";
+      if (error.response?.data) {
+        if (Array.isArray(error.response.data)) {
+            errMsg = error.response.data.join(" ");
+        } else {
+            errMsg = JSON.stringify(error.response.data);
+        }
+      } else if (error.message) {
+        errMsg = error.message;
+      }
+      alert(errMsg);
       setLoading(false);
     }
   };
