@@ -288,6 +288,17 @@ export default function SellItem() {
           </div>
 
           <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Contact Number (Optional)</label>
+            <input
+              type="text"
+              value={formData.contact_number}
+              onChange={e => setFormData({...formData, contact_number: e.target.value})}
+              placeholder="e.g. 01700000000"
+              className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all"
+            />
+          </div>
+
+          <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">{isForSale ? 'Image' : 'Image (Optional)'}</label>
             {imagePreview ? (
               <div className="relative w-full h-48 bg-gray-100 rounded-xl border border-gray-200 overflow-hidden shadow-inner">

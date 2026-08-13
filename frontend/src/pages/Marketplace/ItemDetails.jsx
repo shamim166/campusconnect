@@ -74,7 +74,7 @@ export default function ItemDetails() {
 
   const handleMessage = async () => {
     try {
-       const res = await api.post('marketplace/conversations/', { item: id });
+       const res = await api.post('marketplace/conversations/', { item_id: id });
        navigate('/marketplace/messages', { state: { activeConv: res.data } });
     } catch (e) {
        console.error(e);
@@ -85,7 +85,7 @@ export default function ItemDetails() {
   const handleMakeOffer = async () => {
       setOfferSending(true);
       try {
-          await api.post('marketplace/offers/', { item: id, amount: offerAmount });
+          await api.post('marketplace/offers/', { item_id: id, amount: offerAmount });
           toast.success("Offer sent successfully!");
           setShowOffer(false);
           setOfferAmount("");
@@ -104,6 +104,7 @@ export default function ItemDetails() {
   if (!item) return <div className="text-gray-900 text-center py-20">Item not found</div>;
 
   const isForSale = item.listing_type === 'FOR_SALE';
+  const displayPhone = item.contact_number || item.seller_phone;
 
   return (
     <div className="p-8 max-w-6xl mx-auto">
@@ -216,10 +217,10 @@ export default function ItemDetails() {
                   <p className="text-gray-900 font-bold">{item.seller_name}</p>
                 </div>
               </div>
-              {item.seller_phone && (
+              {displayPhone && (
                 <div className="text-right">
                   <p className="text-sm text-gray-500 font-medium flex items-center justify-end gap-1"><Phone size={12}/> Phone</p>
-                  <p className="text-gray-900 font-bold">{item.seller_phone}</p>
+                  <p className="text-gray-900 font-bold">{displayPhone}</p>
                 </div>
               )}
             </div>
@@ -338,6 +339,12 @@ export default function ItemDetails() {
                 <label className="block text-gray-700 text-sm font-bold mb-2">Description</label>
                 <textarea value={editForm.description} onChange={e => setEditForm({...editForm, description: e.target.value})} rows={4} className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 resize-none"></textarea>
               </div>
+              
+              <div>
+                <label className="block text-gray-700 text-sm font-bold mb-2">Contact Number</label>
+                <input type="text" value={editForm.contact_number || ""} onChange={e => setEditForm({...editForm, contact_number: e.target.value})} placeholder="e.g. 01700000000" className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500" />
+              </div>
+
               <div className="flex gap-4 pt-4">
                 <button onClick={() => setShowEdit(false)} className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-colors">Cancel</button>
                 <button onClick={handleEditSubmit} disabled={saving} className="flex-1 py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 transition-colors">{saving ? 'Saving...' : 'Save Changes'}</button>

@@ -58,6 +58,7 @@ class MarketplaceItem(models.Model):
     location = models.CharField(max_length=255, blank=True, null=True)
     date_lost_found = models.DateField(blank=True, null=True)
     reward = models.CharField(max_length=255, blank=True, null=True)
+    contact_number = models.CharField(max_length=20, blank=True, null=True)
 
     image = models.ImageField(upload_to='marketplace/items/', blank=True, null=True)
     

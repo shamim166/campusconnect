@@ -18,7 +18,7 @@ class MarketplaceItemSerializer(serializers.ModelSerializer):
             'id', 'seller', 'seller_name', 'seller_phone', 'category', 'category_name', 
             'title', 'description', 'price', 'is_negotiable', 'condition', 'status', 
             'course_code', 'semester', 'department', 'image', 'listing_type', 'is_saved',
-            'lost_or_found', 'location', 'date_lost_found', 'reward', 'created_at', 'updated_at'
+            'lost_or_found', 'location', 'date_lost_found', 'reward', 'contact_number', 'created_at', 'updated_at'
         ]
         read_only_fields = ('seller', 'created_at', 'updated_at')
 
