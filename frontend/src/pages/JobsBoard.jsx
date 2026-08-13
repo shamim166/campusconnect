@@ -166,6 +166,8 @@ export default function JobsBoard() {
       toast.success(t("jobs.pendingMessage"));
       setShowPost(false);
       setForm(emptyForm);
+      invalidateCache("jobs_list");
+      invalidateCache("jobs_mine");
       fetchJobs();
       setActiveTab("my");
     } catch (err) {
