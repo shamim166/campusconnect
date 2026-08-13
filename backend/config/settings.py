@@ -23,6 +23,8 @@ ALLOWED_HOSTS = ['campusconnect-backend-x3qe.onrender.com', 'localhost', '127.0.
 
 INSTALLED_APPS = [
     "corsheaders",
+    'cloudinary_storage',
+    'cloudinary',
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -202,4 +204,15 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=14),
 }
 
+# =========================
+# CLOUDINARY MEDIA STORAGE
+# =========================
 
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', '')
+}
+
+if os.environ.get('CLOUDINARY_CLOUD_NAME'):
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
