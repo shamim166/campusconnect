@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, BookOpen, Heart, Briefcase, ShoppingBag, Users, Zap, Star, ShieldCheck } from 'lucide-react';
+import { Trophy, BookOpen, Heart, Briefcase, ShoppingBag, Users, Star, ShieldCheck, Search, HandHeart, ListChecks, FileQuestion, Newspaper } from 'lucide-react';
 import api, { BASE_URL } from '../services/api';
 import { useTheme, useBreakpoint } from '../hooks';
 
@@ -13,8 +13,19 @@ const categories = [
   { id: 'club', label: 'Clubs', icon: Users, color: '#10B981' },
 ];
 
+const ruleMeta = {
+  note_upload: { icon: BookOpen, label: 'Upload a useful note' },
+  ct_question_post: { icon: FileQuestion, label: 'Post a CT question' },
+  job_post: { icon: Briefcase, label: 'Post a job opportunity' },
+  blood_request_post: { icon: HandHeart, label: 'Post a blood request' },
+  blood_community_post: { icon: Newspaper, label: 'Share a blood post' },
+  blood_donation: { icon: HandHeart, label: 'Record a blood donation' },
+  lost_item_returned: { icon: Search, label: 'Post a lost/found item' },
+};
+
 export default function Leaderboard() {
   const [data, setData] = useState([]);
+  const [myPoints, setMyPoints] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('overall');
   const { theme } = useTheme();
@@ -33,6 +44,12 @@ export default function Leaderboard() {
         setLoading(false);
       });
   }, [activeCategory]);
+
+  useEffect(() => {
+    api.get('leaderboard/my-points/')
+      .then(res => setMyPoints(res.data))
+      .catch(err => console.error(err));
+  }, []);
 
   const activeColor = categories.find(c => c.id === activeCategory)?.color || '#8B5CF6';
 
@@ -69,7 +86,47 @@ export default function Leaderboard() {
             </p>
           </div>
           
-          {!bp.isMobile && (
+          {!bp.isMobile && myPoints && (
+            <div style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(20px)", padding: "24px", borderRadius: "24px", display: "flex", flexDirection: "column", border: "1px solid rgba(255,255,255,0.2)", width: "360px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+                <Trophy size={32} color="#FBBF24" />
+                <div>
+                  <div style={{ fontSize: "20px", fontWeight: "800" }}>My Points</div>
+                  <div style={{ fontSize: "13px", opacity: 0.8 }}>Total earned: {myPoints.profile.total_points} pts</div>
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "16px", fontSize: "13px" }}>
+                {categories.filter(c => c.id !== 'overall').map((cat) => {
+                  const Icon = cat.icon;
+                  return (
+                    <div key={cat.id} style={{ display: "flex", alignItems: "center", gap: "7px", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: "10px", padding: "8px" }}>
+                      <Icon size={15} color={cat.color} />
+                      <span style={{ flex: 1 }}>{cat.label}</span>
+                      <strong>{myPoints.profile[`${cat.id}_points`]}</strong>
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", fontWeight: 800, marginBottom: "10px" }}>
+                <ListChecks size={16} /> How points are earned
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "9px", fontSize: "13px" }}>
+                {myPoints.rules.map((rule) => {
+                  const meta = ruleMeta[rule.key] || { icon: Star, label: rule.action_name };
+                  const Icon = meta.icon;
+                  return (
+                    <div key={rule.key} style={{ display: "flex", alignItems: "center", gap: "9px" }}>
+                      <Icon size={15} color="#FDE68A" />
+                      <span style={{ flex: 1 }}>{meta.label}</span>
+                      <strong>+{rule.points} pts</strong>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {false && !bp.isMobile && (
             <div style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(20px)", padding: "24px", borderRadius: "24px", display: "flex", flexDirection: "column", border: "1px solid rgba(255,255,255,0.2)", width: "320px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
                 <Trophy size={32} color="#FBBF24" />
@@ -85,6 +142,24 @@ export default function Leaderboard() {
           )}
         </div>
       </motion.div>
+
+      {bp.isMobile && myPoints && (
+        <div style={{ background: isDark ? "rgba(30,41,59,0.5)" : "white", borderRadius: "20px", padding: "20px", marginBottom: "28px", boxShadow: isDark ? "none" : "0 10px 32px rgba(0,0,0,0.04)" }}>
+          <h2 style={{ margin: "0 0 12px", color: isDark ? "#F8FAFC" : "#0F172A" }}>My Points: {myPoints.profile.total_points}</h2>
+          <div style={{ display: "grid", gap: "10px" }}>
+            {myPoints.rules.map((rule) => {
+              const meta = ruleMeta[rule.key] || { icon: Star, label: rule.action_name };
+              const Icon = meta.icon;
+              return (
+                <div key={rule.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", color: isDark ? "#CBD5E1" : "#475569" }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: "8px" }}><Icon size={15} /> {meta.label}</span>
+                  <strong>+{rule.points}</strong>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Categories */}
       <div style={{ display: "flex", gap: "12px", overflowX: "auto", paddingBottom: "16px", marginBottom: "32px", scrollbarWidth: "none" }}>
@@ -119,6 +194,30 @@ export default function Leaderboard() {
           )
         })}
       </div>
+
+      {myPoints && (
+        <div style={{ background: isDark ? "rgba(30,41,59,0.5)" : "white", borderRadius: "24px", padding: bp.isMobile ? "18px" : "24px", marginBottom: "28px", boxShadow: isDark ? "none" : "0 10px 40px rgba(0,0,0,0.03)", border: `1px solid ${isDark ? "rgba(255,255,255,0.05)" : "#EEF2F7"}` }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+            <h2 style={{ fontSize: "20px", fontWeight: "800", color: isDark ? "#F8FAFC" : "#0F172A", margin: 0 }}>My Recent Point Activity</h2>
+            <span style={{ color: activeColor, fontWeight: 800 }}>{myPoints.profile.total_points} pts</span>
+          </div>
+          {myPoints.recent_logs.length === 0 ? (
+            <div style={{ color: isDark ? "#94A3B8" : "#64748B", fontWeight: 600 }}>No points yet. Upload a note or record a donation to start earning.</div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: bp.isMobile ? "1fr" : "repeat(2, minmax(0, 1fr))", gap: "10px" }}>
+              {myPoints.recent_logs.slice(0, 6).map((log) => (
+                <div key={log.id} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px", borderRadius: "14px", background: isDark ? "rgba(15,23,42,0.35)" : "#F8FAFC", border: `1px solid ${isDark ? "rgba(255,255,255,0.05)" : "#E2E8F0"}` }}>
+                  <div style={{ width: "38px", height: "38px", borderRadius: "12px", display: "grid", placeItems: "center", background: `${activeColor}18`, color: activeColor, fontWeight: 900 }}>+{log.points}</div>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ color: isDark ? "#F8FAFC" : "#0F172A", fontWeight: 800, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{log.action_name}</div>
+                    <div style={{ color: isDark ? "#94A3B8" : "#64748B", fontSize: "12px", textTransform: "capitalize" }}>{log.category}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Leaderboard List */}
       <div style={{ background: isDark ? "rgba(30,41,59,0.5)" : "white", borderRadius: "28px", padding: bp.isMobile ? "20px" : "40px", boxShadow: isDark ? "none" : "0 10px 40px rgba(0,0,0,0.03)", border: `1px solid ${isDark ? "rgba(255,255,255,0.05)" : "transparent"}` }}>

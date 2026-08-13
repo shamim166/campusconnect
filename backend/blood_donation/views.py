@@ -13,6 +13,7 @@ from .serializers import (
     DonationRecordSerializer, CommunityPostSerializer, DonationStatsSerializer,
 )
 from accounts.permissions import IsOwnerOrReadOnly
+from leaderboard.utils import POINT_RULES, award_points_once
 
 # Compatible blood groups lookup
 COMPATIBLE_DONORS = {
@@ -122,7 +123,14 @@ class BloodRequestViewSet(viewsets.ModelViewSet):
         return qs
 
     def perform_create(self, serializer):
-        serializer.save(requested_by=self.request.user)
+        blood_request = serializer.save(requested_by=self.request.user)
+        rule = POINT_RULES['blood_request_post']
+        award_points_once(
+            self.request.user,
+            rule['category'],
+            f"{rule['action_name']}: {blood_request.blood_group} #{blood_request.id}",
+            rule['points'],
+        )
 
     @action(detail=True, methods=['post'], url_path='share')
     def share(self, request, pk=None):
@@ -163,6 +171,13 @@ class DonationRecordViewSet(viewsets.ModelViewSet):
             donor.total_donations += 1
             donor.last_donation_date = record.donation_date
             donor.save(update_fields=['total_donations', 'last_donation_date'])
+            rule = POINT_RULES['blood_donation']
+            award_points_once(
+                self.request.user,
+                rule['category'],
+                f"{rule['action_name']}: {record.donation_date} #{record.id}",
+                rule['points'],
+            )
         except BloodDonor.DoesNotExist:
             from rest_framework.exceptions import ValidationError
             raise ValidationError("You must be registered as a donor first.")
@@ -176,7 +191,14 @@ class CommunityPostViewSet(viewsets.ModelViewSet):
         return CommunityPost.objects.filter(is_approved=True).prefetch_related('likes', 'author')
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        post = serializer.save(author=self.request.user)
+        rule = POINT_RULES['blood_community_post']
+        award_points_once(
+            self.request.user,
+            rule['category'],
+            f"{rule['action_name']}: #{post.id}",
+            rule['points'],
+        )
 
     @action(detail=True, methods=['post'], url_path='toggle-like')
     def toggle_like(self, request, pk=None):

@@ -1,8 +1,9 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from .models import ImpactProfile
-from .serializers import ImpactProfileSerializer
+from .models import ImpactProfile, PointLog
+from .serializers import ImpactProfileSerializer, PointLogSerializer
+from .utils import POINT_RULES
 
 class LeaderboardDashboardView(APIView):
     permission_classes = [IsAuthenticated]
@@ -62,3 +63,69 @@ class LeaderboardFullView(APIView):
             sorted_profiles = sorted(profiles, key=lambda x: x.total_points, reverse=True)
             
         return Response(ImpactProfileSerializer(sorted_profiles[:50], many=True).data)
+
+
+class MyPointsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        profile, _ = ImpactProfile.objects.get_or_create(user=request.user)
+        logs = PointLog.objects.filter(user=request.user).order_by('-created_at')[:20]
+
+        return Response({
+            'profile': ImpactProfileSerializer(profile).data,
+            'recent_logs': PointLogSerializer(logs, many=True).data,
+            'rules': [
+                {
+                    'key': key,
+                    'category': rule['category'],
+                    'action_name': rule['action_name'],
+                    'points': rule['points'],
+                }
+                for key, rule in POINT_RULES.items()
+            ],
+        })
+
+
+class AwardActionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        action_key = request.data.get('action_key')
+        reference = str(request.data.get('reference') or '').strip()
+
+        if action_key not in POINT_RULES:
+            return Response({'detail': 'Invalid point action.'}, status=400)
+
+        rule = POINT_RULES[action_key]
+        action_name = rule['action_name']
+        if reference:
+            action_name = f"{action_name}: {reference}"
+
+        awarded = False
+        if not PointLog.objects.filter(user=request.user, action_name=action_name).exists():
+            PointLog.objects.create(
+                user=request.user,
+                category=rule['category'],
+                action_name=action_name,
+                points=rule['points'],
+            )
+            profile, _ = ImpactProfile.objects.get_or_create(user=request.user)
+            if rule['category'] == 'academic':
+                profile.academic_points += rule['points']
+            elif rule['category'] == 'career':
+                profile.career_points += rule['points']
+            elif rule['category'] == 'club':
+                profile.club_points += rule['points']
+            elif rule['category'] == 'community':
+                profile.community_points += rule['points']
+            elif rule['category'] == 'marketplace':
+                profile.marketplace_points += rule['points']
+            profile.save()
+            awarded = True
+
+        return Response({
+            'awarded': awarded,
+            'points': rule['points'],
+            'action_name': action_name,
+        })

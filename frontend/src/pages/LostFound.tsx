@@ -32,6 +32,7 @@ import {
   X,
   XCircle,
 } from "lucide-react";
+import api from "../services/api";
 import FloatingBackButton from "../components/FloatingBackButton";
 
 type ItemType = "Lost" | "Found";
@@ -254,7 +255,7 @@ export default function LostFound() {
     if (file) updateForm("image", URL.createObjectURL(file));
   }
 
-  function submitReport(event: FormEvent<HTMLFormElement>) {
+  async function submitReport(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!form.name.trim() || !form.description.trim() || !form.contact.trim()) {
       setNotice("Item Name, Description, and Contact are required.");
@@ -283,7 +284,15 @@ export default function LostFound() {
     setSelectedItem(newItem);
     setActiveTab("My Reports");
     setReportOpen(false);
-    setNotice(`${reportType} report posted successfully. It is visible in My Reports.`);
+    try {
+      const reward = await api.post("leaderboard/award-action/", {
+        action_key: "lost_item_returned",
+        reference: `${reportType} ${newItem.name} #${newItem.id}`,
+      });
+      setNotice(`${reportType} report posted successfully. +${reward.data.points} points earned.`);
+    } catch (error) {
+      setNotice(`${reportType} report posted successfully. Points could not be awarded right now.`);
+    }
     setForm({ ...emptyForm, category: form.category, location: form.location });
   }
 

@@ -28,4 +28,4 @@ class ImpactProfileSerializer(serializers.ModelSerializer):
 class PointLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = PointLog
-        fields = '__all__'
+        fields = ['id', 'category', 'action_name', 'points', 'created_at']

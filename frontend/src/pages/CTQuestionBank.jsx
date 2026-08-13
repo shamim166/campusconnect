@@ -158,7 +158,7 @@ export default function CTQuestionBank() {
       await api.post("ct-questions/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      toast.success(t("messages.uploadSuccess"));
+      toast.success(`${t("messages.uploadSuccess")} +10 points earned!`);
       resetModal();
       invalidateCache("ct_questions");
       fetchQuestions();

@@ -205,7 +205,7 @@ export default function JobsBoard() {
         toast.success("Job updated successfully");
       } else {
         await api.post("jobs/", payload);
-        toast.success(t("jobs.pendingMessage"));
+        toast.success(`${t("jobs.pendingMessage")} +10 points earned!`);
       }
       setShowPost(false);
       setForm(emptyForm);

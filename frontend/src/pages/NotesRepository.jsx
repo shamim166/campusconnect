@@ -145,7 +145,7 @@ export default function NotesRepository() {
       await api.post("notes/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      toast.success(t("messages.uploadSuccess"));
+      toast.success(`${t("messages.uploadSuccess")} +10 points earned!`);
       resetModal();
       invalidateCache("notes_list");
       fetchNotes();

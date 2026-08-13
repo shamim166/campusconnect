@@ -14,6 +14,7 @@ from .models import Assignment, AssignmentTemplate, Note, CTQuestion, JobPosting
 from .serializers import NoteSerializer, CTQuestionSerializer, JobPostingSerializer
 from .permissions import CanUploadNote
 from accounts.permissions import IsOwnerOrReadOnly
+from leaderboard.utils import POINT_RULES, award_points_once
 
 
 ASSIGNMENT_TEMPLATE_DEFAULTS = {
@@ -78,7 +79,14 @@ class NoteListCreateView(generics.ListCreateAPIView):
     permission_classes = [CanUploadNote]
 
     def perform_create(self, serializer):
-        serializer.save(uploaded_by=self.request.user)
+        note = serializer.save(uploaded_by=self.request.user)
+        rule = POINT_RULES['note_upload']
+        award_points_once(
+            self.request.user,
+            rule['category'],
+            f"{rule['action_name']}: {note.title} #{note.id}",
+            rule['points'],
+        )
 
 
 class NoteDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -98,7 +106,14 @@ class CTQuestionListCreateView(generics.ListCreateAPIView):
         return context
 
     def perform_create(self, serializer):
-        serializer.save(uploaded_by=self.request.user)
+        question = serializer.save(uploaded_by=self.request.user)
+        rule = POINT_RULES['ct_question_post']
+        award_points_once(
+            self.request.user,
+            rule['category'],
+            f"{rule['action_name']}: {question.title} #{question.id}",
+            rule['points'],
+        )
 
 
 class CTQuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -120,9 +135,16 @@ class JobListCreateView(generics.ListCreateAPIView):
         return JobPosting.objects.select_related('posted_by', 'reviewed_by').filter(status='approved')
 
     def perform_create(self, serializer):
-        serializer.save(
+        job = serializer.save(
             posted_by=self.request.user,
             status='pending',
+        )
+        rule = POINT_RULES['job_post']
+        award_points_once(
+            self.request.user,
+            rule['category'],
+            f"{rule['action_name']}: {job.title} #{job.id}",
+            rule['points'],
         )
 
 

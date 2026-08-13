@@ -361,7 +361,7 @@ export default function BloodDonation() {
     setSubmitting(true);
     try {
       await api.post("blood/requests/", requestForm);
-      toast.success("Blood request posted successfully!");
+      toast.success("Blood request posted successfully! +10 points earned!");
       setShowRequestForm(false);
       fetchAll();
       setActiveTab("requests");
@@ -380,7 +380,7 @@ export default function BloodDonation() {
         toast.success("Post updated successfully!");
       } else {
         await api.post("blood/community/", { content: postContent, post_type: postType });
-        toast.success("Post shared successfully!");
+        toast.success("Post shared successfully! +10 points earned!");
       }
       setShowPostModal(false);
       setPostContent("");
