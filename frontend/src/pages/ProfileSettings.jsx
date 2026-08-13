@@ -132,6 +132,39 @@ export default function ProfileSettings({ defaultTab = "general" }) {
     }
   };
 
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const handlePasswordChange = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error("Please fill all password fields.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords do not match.");
+      return;
+    }
+    
+    try {
+      const toastId = toast.loading("Updating password...");
+      const token = localStorage.getItem("access");
+      await axios.post(`${BASE_URL}/api/change-password/`, {
+        current_password: currentPassword,
+        new_password: newPassword
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success("Password updated successfully!", { id: toastId });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      toast.dismiss();
+      toast.error(err.response?.data?.error || "Failed to update password.");
+    }
+  };
+
   const handleFileChange = (e, side) => {
     const file = e.target.files[0];
     if (file) {
@@ -383,10 +416,10 @@ export default function ProfileSettings({ defaultTab = "general" }) {
                   <div>
                     <h2 style={{ fontSize: "20px", fontWeight: "800", marginBottom: "24px", display: "flex", alignItems: "center", gap: "10px" }}><Key size={22} color="#F59E0B" /> Security Settings</h2>
                     <div style={{ display: "flex", flexDirection: "column", gap: "20px", maxWidth: "500px" }}>
-                      <div><label className="form-label">Current Password</label><input type="password" className="form-input" /></div>
-                      <div><label className="form-label">New Password</label><input type="password" className="form-input" /></div>
-                      <div><label className="form-label">Confirm New Password</label><input type="password" className="form-input" /></div>
-                      <button style={{ marginTop: "12px", background: "linear-gradient(135deg, #F59E0B, #D97706)", color: "white", padding: "14px 28px", borderRadius: "12px", border: "none", fontWeight: "700", fontSize: "15px", cursor: "pointer", display: "inline-flex", alignSelf: "flex-start", boxShadow: "0 8px 20px rgba(245,158,11,0.3)" }}>
+                      <div><label className="form-label">Current Password</label><input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="form-input" /></div>
+                      <div><label className="form-label">New Password</label><input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="form-input" /></div>
+                      <div><label className="form-label">Confirm New Password</label><input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="form-input" /></div>
+                      <button onClick={handlePasswordChange} style={{ marginTop: "12px", background: "linear-gradient(135deg, #F59E0B, #D97706)", color: "white", padding: "14px 28px", borderRadius: "12px", border: "none", fontWeight: "700", fontSize: "15px", cursor: "pointer", display: "inline-flex", alignSelf: "flex-start", boxShadow: "0 8px 20px rgba(245,158,11,0.3)" }}>
                         Update Password
                       </button>
                     </div>

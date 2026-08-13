@@ -9,6 +9,7 @@ from .views import (
     AdminStudentPermissionsView,
     StudentPermissionsView,
     DashboardStatsView,
+    ChangePasswordView,
 )
 
 urlpatterns = [
@@ -21,4 +22,5 @@ urlpatterns = [
     path("admin/student-permissions/<int:user_id>/", AdminStudentPermissionsView.as_view()),
     path("student/my-permissions/", StudentPermissionsView.as_view()),
     path("dashboard/stats/", DashboardStatsView.as_view()),
+    path("change-password/", ChangePasswordView.as_view()),
 ]
