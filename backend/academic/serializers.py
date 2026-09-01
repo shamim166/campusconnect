@@ -2,9 +2,26 @@ from rest_framework import serializers
 from .models import Note, CTQuestion, JobPosting
 
 
+def format_media_url(file_field, request=None):
+    if not file_field:
+        return None
+    try:
+        url = file_field.url
+    except Exception:
+        return None
+
+    if "res.cloudinary.com" in url and "/image/upload/" in url and not any(x in url for x in ["/f_jpg/", "/f_png/", "/f_auto/", "/fl_attachment/"]):
+        url = url.replace("/image/upload/", "/image/upload/f_jpg/")
+
+    if request and not url.startswith('http'):
+        return request.build_absolute_uri(url)
+    return url
+
+
 class NoteSerializer(serializers.ModelSerializer):
 
     uploaded_by = serializers.StringRelatedField(read_only=True)
+    pdf_file = serializers.SerializerMethodField()
 
     class Meta:
         model = Note
@@ -21,10 +38,15 @@ class NoteSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
 
+    def get_pdf_file(self, obj):
+        request = self.context.get('request')
+        return format_media_url(obj.pdf_file, request)
+
 
 class CTQuestionSerializer(serializers.ModelSerializer):
 
     uploaded_by = serializers.StringRelatedField(read_only=True)
+    pdf_file = serializers.SerializerMethodField()
     file_url = serializers.SerializerMethodField()
 
     class Meta:
@@ -45,13 +67,13 @@ class CTQuestionSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
 
+    def get_pdf_file(self, obj):
+        request = self.context.get('request')
+        return format_media_url(obj.pdf_file, request)
+
     def get_file_url(self, obj):
         request = self.context.get('request')
-        if obj.pdf_file and request:
-            return request.build_absolute_uri(obj.pdf_file.url)
-        if obj.pdf_file:
-            return obj.pdf_file.url
-        return None
+        return format_media_url(obj.pdf_file, request)
 
 
 class JobPostingSerializer(serializers.ModelSerializer):
