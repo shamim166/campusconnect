@@ -21,7 +21,6 @@ def format_media_url(file_field, request=None):
 class NoteSerializer(serializers.ModelSerializer):
 
     uploaded_by = serializers.StringRelatedField(read_only=True)
-    pdf_file = serializers.SerializerMethodField()
 
     class Meta:
         model = Note
@@ -38,15 +37,16 @@ class NoteSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
 
-    def get_pdf_file(self, obj):
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
         request = self.context.get('request')
-        return format_media_url(obj.pdf_file, request)
+        data['pdf_file'] = format_media_url(instance.pdf_file, request)
+        return data
 
 
 class CTQuestionSerializer(serializers.ModelSerializer):
 
     uploaded_by = serializers.StringRelatedField(read_only=True)
-    pdf_file = serializers.SerializerMethodField()
     file_url = serializers.SerializerMethodField()
 
     class Meta:
@@ -67,13 +67,15 @@ class CTQuestionSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
 
-    def get_pdf_file(self, obj):
-        request = self.context.get('request')
-        return format_media_url(obj.pdf_file, request)
-
     def get_file_url(self, obj):
         request = self.context.get('request')
         return format_media_url(obj.pdf_file, request)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        data['pdf_file'] = format_media_url(instance.pdf_file, request)
+        return data
 
 
 class JobPostingSerializer(serializers.ModelSerializer):
