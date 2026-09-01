@@ -10,22 +10,13 @@ export default function SellItem() {
   const [formData, setFormData] = useState({
     title: "",
     category: "",
-    listing_type: "FOR_SALE", // 'FOR_SALE' or 'LOST_AND_FOUND'
-    
-    // For Sale fields
+    listing_type: "FOR_SALE",
     price: "",
     condition: "good",
     is_negotiable: true,
     course_code: "",
     department: "",
     semester: "",
-    
-    // Lost & Found fields
-    lost_or_found: "lost",
-    location: "",
-    date_lost_found: "",
-    reward: "",
-
     description: "",
   });
   const [image, setImage] = useState(null);
@@ -49,7 +40,6 @@ export default function SellItem() {
 
     const data = new FormData();
     Object.keys(formData).forEach(key => {
-      // Don't append empty optional fields
       if (formData[key] !== "" && formData[key] !== null) {
         data.append(key, formData[key]);
       }
@@ -70,13 +60,11 @@ export default function SellItem() {
     }
   };
 
-  const isForSale = formData.listing_type === 'FOR_SALE';
-
   return (
     <div className="p-8 max-w-3xl mx-auto space-y-8">
       <div>
         <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Post an Ad</h1>
-        <p className="text-gray-600 font-medium">List items you want to sell, or post a lost & found notice.</p>
+        <p className="text-gray-600 font-medium">List items you want to sell on campus marketplace.</p>
       </div>
 
       <div className="relative overflow-hidden bg-gradient-to-r from-red-50 via-white to-red-50 border-2 border-red-200 rounded-2xl p-5 flex items-start gap-4 shadow-[0_0_20px_rgba(239,68,68,0.15)] group">
@@ -92,24 +80,6 @@ export default function SellItem() {
 
       <form onSubmit={handleSubmit} className="bg-white shadow-xl shadow-orange-100/60 border border-orange-100 rounded-3xl p-8 space-y-6">
         
-        {/* Listing Type */}
-        <div className="flex gap-4 p-1.5 bg-orange-50 rounded-xl border border-orange-100">
-          <button
-            type="button"
-            onClick={() => setFormData({...formData, listing_type: 'FOR_SALE'})}
-            className={`flex-1 py-3 rounded-lg font-bold transition-all duration-300 ${isForSale ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30 scale-[1.02]' : 'text-orange-700 hover:bg-orange-100'}`}
-          >
-            For Sale
-          </button>
-          <button
-            type="button"
-            onClick={() => setFormData({...formData, listing_type: 'LOST_AND_FOUND'})}
-            className={`flex-1 py-3 rounded-lg font-bold transition-all duration-300 ${!isForSale ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30 scale-[1.02]' : 'text-blue-700 hover:bg-blue-50'}`}
-          >
-            Lost & Found
-          </button>
-        </div>
-
         {/* Basic Info */}
         <div className="space-y-5">
           <div>
@@ -119,7 +89,7 @@ export default function SellItem() {
               type="text"
               value={formData.title}
               onChange={e => setFormData({...formData, title: e.target.value})}
-              placeholder={isForSale ? "e.g. Database System Concepts 7th Edition" : "e.g. Lost iPhone 13 Pro Max"}
+              placeholder="e.g. Database System Concepts 7th Edition"
               className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all"
             />
           </div>
@@ -140,139 +110,84 @@ export default function SellItem() {
               </select>
             </div>
             
-            {isForSale ? (
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Condition *</label>
-                <select
-                  required
-                  value={formData.condition}
-                  onChange={e => setFormData({...formData, condition: e.target.value})}
-                  className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all"
-                >
-                  <option value="new">New</option>
-                  <option value="like_new">Like New</option>
-                  <option value="good">Good</option>
-                  <option value="used">Used</option>
-                  <option value="damaged">Damaged</option>
-                </select>
-              </div>
-            ) : (
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Lost or Found *</label>
-                <select
-                  required
-                  value={formData.lost_or_found}
-                  onChange={e => setFormData({...formData, lost_or_found: e.target.value})}
-                  className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all"
-                >
-                  <option value="lost">I Lost this item</option>
-                  <option value="found">I Found this item</option>
-                </select>
-              </div>
-            )}
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Condition *</label>
+              <select
+                required
+                value={formData.condition}
+                onChange={e => setFormData({...formData, condition: e.target.value})}
+                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all"
+              >
+                <option value="new">New</option>
+                <option value="like_new">Like New</option>
+                <option value="good">Good</option>
+                <option value="used">Used</option>
+                <option value="damaged">Damaged</option>
+              </select>
+            </div>
           </div>
         </div>
 
-        {isForSale && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Price (Tk) *</label>
-              <input
-                required
-                type="number"
-                value={formData.price}
-                onChange={e => setFormData({...formData, price: e.target.value})}
-                placeholder="450"
-                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all"
-              />
-            </div>
-            <div className="flex items-center mt-6">
-              <label className="flex items-center gap-3 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={formData.is_negotiable}
-                  onChange={e => setFormData({...formData, is_negotiable: e.target.checked})}
-                  className="w-5 h-5 rounded border-gray-300 text-orange-500 focus:ring-orange-500 focus:ring-offset-white bg-white cursor-pointer"
-                />
-                <span className="text-gray-700 font-medium group-hover:text-orange-600 transition-colors">Price is negotiable</span>
-              </label>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Price (Tk) *</label>
+            <input
+              required
+              type="number"
+              value={formData.price}
+              onChange={e => setFormData({...formData, price: e.target.value})}
+              placeholder="450"
+              className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all"
+            />
           </div>
-        )}
+          <div className="flex items-center mt-6">
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={formData.is_negotiable}
+                onChange={e => setFormData({...formData, is_negotiable: e.target.checked})}
+                className="w-5 h-5 rounded border-gray-300 text-orange-500 focus:ring-orange-500 focus:ring-offset-white bg-white cursor-pointer"
+              />
+              <span className="text-gray-700 font-medium group-hover:text-orange-600 transition-colors">Price is negotiable</span>
+            </label>
+          </div>
+        </div>
 
-        {!isForSale && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-4 pt-4 border-t border-gray-100">
+          <h3 className="text-lg font-bold text-gray-900">Academic Details (Optional)</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Location *</label>
-              <input
-                required
-                type="text"
-                value={formData.location}
-                onChange={e => setFormData({...formData, location: e.target.value})}
-                placeholder="e.g. Library 2nd Floor"
-                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Date *</label>
-              <input
-                required
-                type="date"
-                value={formData.date_lost_found}
-                onChange={e => setFormData({...formData, date_lost_found: e.target.value})}
-                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-bold text-gray-700 mb-1">Reward (Optional)</label>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Course Code</label>
               <input
                 type="text"
-                value={formData.reward}
-                onChange={e => setFormData({...formData, reward: e.target.value})}
-                placeholder="e.g. 500 Tk for return"
+                value={formData.course_code}
+                onChange={e => setFormData({...formData, course_code: e.target.value})}
+                placeholder="e.g. CSE220"
+                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Department</label>
+              <input
+                type="text"
+                value={formData.department}
+                onChange={e => setFormData({...formData, department: e.target.value})}
+                placeholder="e.g. CSE"
+                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Semester</label>
+              <input
+                type="text"
+                value={formData.semester}
+                onChange={e => setFormData({...formData, semester: e.target.value})}
+                placeholder="e.g. 4th"
                 className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all"
               />
             </div>
           </div>
-        )}
-
-        {isForSale && (
-          <div className="space-y-4 pt-4 border-t border-gray-100">
-            <h3 className="text-lg font-bold text-gray-900">Academic Details (Optional)</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Course Code</label>
-                <input
-                  type="text"
-                  value={formData.course_code}
-                  onChange={e => setFormData({...formData, course_code: e.target.value})}
-                  placeholder="e.g. CSE220"
-                  className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Department</label>
-                <input
-                  type="text"
-                  value={formData.department}
-                  onChange={e => setFormData({...formData, department: e.target.value})}
-                  placeholder="e.g. CSE"
-                  className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Semester</label>
-                <input
-                  type="text"
-                  value={formData.semester}
-                  onChange={e => setFormData({...formData, semester: e.target.value})}
-                  placeholder="e.g. 4th"
-                  className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all"
-                />
-              </div>
-            </div>
-          </div>
-        )}
+        </div>
 
         <div className="space-y-4 pt-4 border-t border-gray-100">
           <div>
@@ -282,7 +197,7 @@ export default function SellItem() {
               rows={4}
               value={formData.description}
               onChange={e => setFormData({...formData, description: e.target.value})}
-              placeholder={isForSale ? "Describe the item, condition, any highlights..." : "Provide clear identifying details..."}
+              placeholder="Describe the item, condition, any highlights..."
               className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none resize-none transition-all"
             />
           </div>
@@ -299,7 +214,7 @@ export default function SellItem() {
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">{isForSale ? 'Image' : 'Image (Optional)'}</label>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Image *</label>
             {imagePreview ? (
               <div className="relative w-full h-48 bg-gray-100 rounded-xl border border-gray-200 overflow-hidden shadow-inner">
                 <img src={imagePreview} alt="Preview" className="w-full h-full object-contain" />
@@ -318,7 +233,7 @@ export default function SellItem() {
                   <p className="mb-2 text-sm text-gray-600"><span className="font-bold text-orange-600">Click to upload</span> or drag and drop</p>
                   <p className="text-xs text-gray-500">PNG, JPG or JPEG (MAX. 5MB)</p>
                 </div>
-                <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} required={isForSale} />
+                <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} required />
               </label>
             )}
           </div>

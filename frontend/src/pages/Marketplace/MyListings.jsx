@@ -6,7 +6,7 @@ import api from "../../services/api";
 export default function MyListings() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('active'); // active, sold, lost, found, resolved
+  const [activeTab, setActiveTab] = useState('active'); // active, sold, all
 
   useEffect(() => {
     fetchMyItems();
@@ -52,9 +52,6 @@ export default function MyListings() {
   const filteredItems = items.filter(item => {
     if (activeTab === 'active') return item.status === 'active';
     if (activeTab === 'sold') return item.status === 'sold';
-    if (activeTab === 'lost') return item.listing_type === 'LOST_AND_FOUND' && item.lost_or_found === 'lost';
-    if (activeTab === 'found') return item.listing_type === 'LOST_AND_FOUND' && item.lost_or_found === 'found';
-    if (activeTab === 'resolved') return item.status === 'resolved';
     return true;
   });
 
@@ -63,7 +60,7 @@ export default function MyListings() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">My Listings</h1>
-          <p className="text-gray-600">Manage the items you're selling or looking for</p>
+          <p className="text-gray-600">Manage the items you're selling</p>
         </div>
         <Link 
           to="/marketplace/sell"
@@ -74,7 +71,7 @@ export default function MyListings() {
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-        {['active', 'sold', 'lost', 'found', 'resolved'].map(tab => (
+        {['active', 'sold', 'all'].map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}

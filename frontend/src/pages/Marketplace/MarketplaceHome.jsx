@@ -9,7 +9,6 @@ export default function MarketplaceHome() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
-  const [listingFilter, setListingFilter] = useState("all");
 
   useEffect(() => {
     fetchItems();
@@ -38,26 +37,16 @@ export default function MarketplaceHome() {
                           (item.course_code && item.course_code.toLowerCase().includes(search.toLowerCase())) ||
                           (item.location && item.location.toLowerCase().includes(search.toLowerCase()));
     
-    // Listing filter
-    let matchesFilter = true;
-    if (listingFilter === "for_sale") {
-      matchesFilter = item.listing_type === 'FOR_SALE';
-    } else if (listingFilter === "lost_and_found") {
-      matchesFilter = item.listing_type === 'LOST_AND_FOUND';
-    }
-    
     let matchesCategory = true;
     if (activeCategory !== "All") {
         if (activeCategory === "Others") {
-            // Assume 1 and 2 are Books and Electronics ids, or check by name. 
-            // In the backend, category names might differ. For now, rely on category_name or ID.
             matchesCategory = !["Books", "Electronics"].includes(item.category_name);
         } else {
             matchesCategory = item.category_name === activeCategory;
         }
     }
 
-    return matchesSearch && matchesFilter && matchesCategory;
+    return matchesSearch && matchesCategory;
   });
 
   const categories = [
@@ -78,7 +67,7 @@ export default function MarketplaceHome() {
               <span className="text-lg leading-none">+</span> Post Ad
             </Link>
           </div>
-          <p className="text-gray-600 font-medium">Buy, sell, exchange, or find lost items</p>
+          <p className="text-gray-600 font-medium">Buy, sell, or exchange items with fellow students</p>
         </div>
         
         <div className="flex flex-col md:flex-row w-full md:w-auto gap-3">
@@ -92,15 +81,6 @@ export default function MarketplaceHome() {
               className="w-full bg-white border border-orange-200 rounded-xl py-3 pl-10 pr-4 text-gray-900 shadow-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
             />
           </div>
-          <select 
-            value={listingFilter}
-            onChange={(e) => setListingFilter(e.target.value)}
-            className="bg-white border border-orange-200 text-gray-800 rounded-xl px-4 py-3 shadow-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 font-medium"
-          >
-            <option value="all">All Ads</option>
-            <option value="for_sale">For Sale</option>
-            <option value="lost_and_found">Lost & Found</option>
-          </select>
           <button className="bg-white border border-orange-200 p-3 rounded-xl hover:bg-orange-50 text-orange-600 transition-colors shadow-sm tooltip" title="More Filters">
             <Filter size={20} />
           </button>
