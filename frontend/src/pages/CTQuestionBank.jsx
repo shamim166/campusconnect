@@ -888,6 +888,36 @@ export default function CTQuestionBank() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
+                        const url = getFileUrl(question);
+                        if (url) {
+                          window.open(url, "_blank");
+                        } else {
+                          setSelectedQuestion(question);
+                        }
+                      }}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        padding: "6px 12px",
+                        background: colors.bg_secondary,
+                        color: ACCENT,
+                        border: `1px solid ${ACCENT}`,
+                        borderRadius: "6px",
+                        fontSize: "11px",
+                        fontWeight: "700",
+                        cursor: "pointer",
+                        fontFamily: "Inter, sans-serif",
+                        transition: "all 0.2s",
+                      }}
+                      onMouseEnter={(e) => (e.target.style.transform = "scale(1.05)")}
+                      onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
+                    >
+                      <Eye size={12} /> View
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
                         downloadFile(getFileUrl(question), `${question.title}.pdf`);
                       }}
                       style={{

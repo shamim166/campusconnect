@@ -572,6 +572,19 @@ export default function NotesRepository() {
                           onClick={(e) => {
                             e.stopPropagation();
                             if (note.pdf_file) {
+                              window.open(note.pdf_file, "_blank");
+                            } else {
+                              setSelectedNote(note);
+                            }
+                          }}
+                          style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", background: colors.bg_secondary, color: ACCENT, border: `1px solid ${ACCENT}`, borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif" }}
+                        >
+                          <Eye size={12} /> View
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (note.pdf_file) {
                               downloadFile(note.pdf_file, `${note.title}.pdf`);
                             }
                           }}
