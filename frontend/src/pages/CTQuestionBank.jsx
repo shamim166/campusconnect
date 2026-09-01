@@ -155,15 +155,20 @@ export default function CTQuestionBank() {
     formData.append("pdf_file", uploadFile);
 
     try {
-      await api.post("ct-questions/", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await api.post("ct-questions/", formData);
       toast.success(`${t("messages.uploadSuccess")} +10 points earned!`);
       resetModal();
       invalidateCache("ct_questions");
       fetchQuestions();
     } catch (error) {
-      toast.error(error.response?.data?.error || t("messages.uploadFailed"));
+      const errData = error.response?.data;
+      let msg = t("messages.uploadFailed");
+      if (typeof errData === 'string') {
+        msg = errData;
+      } else if (errData && typeof errData === 'object') {
+        msg = Object.entries(errData).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`).join("\n");
+      }
+      toast.error(msg);
     } finally {
       setUploading(false);
     }

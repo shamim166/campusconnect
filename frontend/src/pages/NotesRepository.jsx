@@ -142,9 +142,7 @@ export default function NotesRepository() {
     formData.append("pdf_file", uploadFile);
 
     try {
-      await api.post("notes/", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await api.post("notes/", formData);
       toast.success(`${t("messages.uploadSuccess")} +10 points earned!`);
       resetModal();
       invalidateCache("notes_list");
@@ -155,11 +153,14 @@ export default function NotesRepository() {
         navigate("/login");
       } else {
         const errData = err.response?.data;
-        const msg = errData
-          ? Object.entries(errData).map(([k, v]) => `${k}: ${v}`).join("\n")
-          : t("messages.uploadFailed");
+        let msg = t("messages.uploadFailed");
+        if (typeof errData === 'string') {
+          msg = errData;
+        } else if (errData && typeof errData === 'object') {
+          msg = Object.entries(errData).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`).join("\n");
+        }
         setUploadError(msg);
-        toast.error(t("messages.uploadFailed"));
+        toast.error(msg);
       }
     } finally {
       setUploading(false);
