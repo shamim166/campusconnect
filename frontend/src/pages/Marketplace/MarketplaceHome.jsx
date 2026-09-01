@@ -9,6 +9,7 @@ export default function MarketplaceHome() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
+  const [listingFilter, setListingFilter] = useState("all");
 
   useEffect(() => {
     fetchItems();
@@ -37,6 +38,13 @@ export default function MarketplaceHome() {
                           (item.course_code && item.course_code.toLowerCase().includes(search.toLowerCase())) ||
                           (item.location && item.location.toLowerCase().includes(search.toLowerCase()));
     
+    let matchesFilter = true;
+    if (listingFilter === "for_sale") {
+      matchesFilter = item.listing_type === 'FOR_SALE';
+    } else if (listingFilter === "want_to_buy") {
+      matchesFilter = item.listing_type === 'WANT_TO_BUY';
+    }
+
     let matchesCategory = true;
     if (activeCategory !== "All") {
         if (activeCategory === "Others") {
@@ -46,7 +54,7 @@ export default function MarketplaceHome() {
         }
     }
 
-    return matchesSearch && matchesCategory;
+    return matchesSearch && matchesFilter && matchesCategory;
   });
 
   const categories = [
@@ -81,6 +89,15 @@ export default function MarketplaceHome() {
               className="w-full bg-white border border-orange-200 rounded-xl py-3 pl-10 pr-4 text-gray-900 shadow-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
             />
           </div>
+          <select 
+            value={listingFilter}
+            onChange={(e) => setListingFilter(e.target.value)}
+            className="bg-white border border-orange-200 text-gray-800 rounded-xl px-4 py-3 shadow-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 font-medium"
+          >
+            <option value="all">All Ads</option>
+            <option value="for_sale">For Sale</option>
+            <option value="want_to_buy">Want to Buy</option>
+          </select>
           <button className="bg-white border border-orange-200 p-3 rounded-xl hover:bg-orange-50 text-orange-600 transition-colors shadow-sm tooltip" title="More Filters">
             <Filter size={20} />
           </button>

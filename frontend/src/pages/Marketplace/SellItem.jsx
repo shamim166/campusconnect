@@ -10,7 +10,7 @@ export default function SellItem() {
   const [formData, setFormData] = useState({
     title: "",
     category: "",
-    listing_type: "FOR_SALE",
+    listing_type: "FOR_SALE", // 'FOR_SALE' or 'WANT_TO_BUY'
     price: "",
     condition: "good",
     is_negotiable: true,
@@ -18,6 +18,7 @@ export default function SellItem() {
     department: "",
     semester: "",
     description: "",
+    contact_number: "",
   });
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -60,11 +61,13 @@ export default function SellItem() {
     }
   };
 
+  const isForSale = formData.listing_type === 'FOR_SALE';
+
   return (
     <div className="p-8 max-w-3xl mx-auto space-y-8">
       <div>
         <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Post an Ad</h1>
-        <p className="text-gray-600 font-medium">List items you want to sell on campus marketplace.</p>
+        <p className="text-gray-600 font-medium">List items you want to sell or request items you want to buy on campus.</p>
       </div>
 
       <div className="relative overflow-hidden bg-gradient-to-r from-red-50 via-white to-red-50 border-2 border-red-200 rounded-2xl p-5 flex items-start gap-4 shadow-[0_0_20px_rgba(239,68,68,0.15)] group">
@@ -80,6 +83,24 @@ export default function SellItem() {
 
       <form onSubmit={handleSubmit} className="bg-white shadow-xl shadow-orange-100/60 border border-orange-100 rounded-3xl p-8 space-y-6">
         
+        {/* Listing Type Toggle: For Sale vs Want to Buy */}
+        <div className="flex gap-4 p-1.5 bg-orange-50 rounded-xl border border-orange-100">
+          <button
+            type="button"
+            onClick={() => setFormData({...formData, listing_type: 'FOR_SALE'})}
+            className={`flex-1 py-3 rounded-lg font-bold transition-all duration-300 ${isForSale ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30 scale-[1.02]' : 'text-orange-700 hover:bg-orange-100'}`}
+          >
+            For Sale
+          </button>
+          <button
+            type="button"
+            onClick={() => setFormData({...formData, listing_type: 'WANT_TO_BUY'})}
+            className={`flex-1 py-3 rounded-lg font-bold transition-all duration-300 ${!isForSale ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 scale-[1.02]' : 'text-emerald-700 hover:bg-emerald-50'}`}
+          >
+            Want to Buy
+          </button>
+        </div>
+
         {/* Basic Info */}
         <div className="space-y-5">
           <div>
@@ -89,7 +110,7 @@ export default function SellItem() {
               type="text"
               value={formData.title}
               onChange={e => setFormData({...formData, title: e.target.value})}
-              placeholder="e.g. Database System Concepts 7th Edition"
+              placeholder={isForSale ? "e.g. Database System Concepts 7th Edition" : "e.g. Looking for CSE220 Book 7th Edition"}
               className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all"
             />
           </div>
@@ -122,7 +143,7 @@ export default function SellItem() {
                 <option value="like_new">Like New</option>
                 <option value="good">Good</option>
                 <option value="used">Used</option>
-                <option value="damaged">Damaged</option>
+                <option value="damaged">Any Condition</option>
               </select>
             </div>
           </div>
@@ -130,13 +151,13 @@ export default function SellItem() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">Price (Tk) *</label>
+            <label className="block text-sm font-bold text-gray-700 mb-1">{isForSale ? 'Price (Tk) *' : 'Budget (Tk) *'}</label>
             <input
               required
               type="number"
               value={formData.price}
               onChange={e => setFormData({...formData, price: e.target.value})}
-              placeholder="450"
+              placeholder={isForSale ? "450" : "Budget e.g. 500"}
               className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all"
             />
           </div>
@@ -197,7 +218,7 @@ export default function SellItem() {
               rows={4}
               value={formData.description}
               onChange={e => setFormData({...formData, description: e.target.value})}
-              placeholder="Describe the item, condition, any highlights..."
+              placeholder={isForSale ? "Describe the item, condition, any highlights..." : "Describe the item you are looking for..."}
               className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none resize-none transition-all"
             />
           </div>
@@ -214,7 +235,7 @@ export default function SellItem() {
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">Image *</label>
+            <label className="block text-sm font-bold text-gray-700 mb-1">{isForSale ? 'Image *' : 'Sample Image (Optional)'}</label>
             {imagePreview ? (
               <div className="relative w-full h-48 bg-gray-100 rounded-xl border border-gray-200 overflow-hidden shadow-inner">
                 <img src={imagePreview} alt="Preview" className="w-full h-full object-contain" />
@@ -233,7 +254,7 @@ export default function SellItem() {
                   <p className="mb-2 text-sm text-gray-600"><span className="font-bold text-orange-600">Click to upload</span> or drag and drop</p>
                   <p className="text-xs text-gray-500">PNG, JPG or JPEG (MAX. 5MB)</p>
                 </div>
-                <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} required />
+                <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} required={isForSale} />
               </label>
             )}
           </div>
@@ -250,7 +271,7 @@ export default function SellItem() {
             ) : (
               <>
                 <Save size={20} />
-                Post Ad
+                {isForSale ? 'Post For Sale Ad' : 'Post Want to Buy Ad'}
               </>
             )}
           </button>

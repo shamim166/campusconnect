@@ -29,6 +29,7 @@ class MarketplaceItem(models.Model):
     )
     LISTING_TYPE_CHOICES = (
         ('FOR_SALE', 'For Sale'),
+        ('WANT_TO_BUY', 'Want to Buy'),
         ('LOST_AND_FOUND', 'Lost & Found'),
     )
     LOST_OR_FOUND_CHOICES = (
